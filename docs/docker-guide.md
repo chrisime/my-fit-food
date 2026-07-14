@@ -43,13 +43,9 @@ docker compose exec api python /app/seed.py
 
 ## podman-compose
 
-### Bekannte Probleme
+### Problem: Credential Helper
 
-**1. Credential Helper (`docker-credential-desktop` nicht gefunden)**
-
-Die Docker-Config zeigt auf `credsStore: "desktop"`, der nur mit laufendem Docker Desktop funktioniert.
-
-**Lösung:** Leere Config verwenden:
+Die Docker-Config zeigt auf `credsStore: "desktop"` — das existiert nur mit Docker Desktop. **Lösung:**
 
 ```bash
 mkdir -p /tmp/docker-clean-config
@@ -57,36 +53,17 @@ echo '{"auths":{}}' > /tmp/docker-clean-config/config.json
 alias dc='DOCKER_CONFIG=/tmp/docker-clean-config docker-compose'
 ```
 
-**2. Port 443 wird von gvproxy abgefangen (macOS)**
-
-Podman verwendet `gvproxy`, das Port 443 auf dem Host blockiert.
-
-**Lösung:** Anderen Host-Port verwenden:
+### Starten
 
 ```bash
-# docker-compose.yml anpassen:
-ports:
-  - "8443:443"  # Host:8443 → Container:443
-```
-
-Oder Container direkt via `podman run` starten (siehe unten).
-
-### Starten (mit Workaround)
-
-```bash
-DOCKER_CONFIG=/tmp/docker-clean-config docker-compose up -d
+DOCKER_CONFIG=/tmp/docker-clean-config docker-compose \
+  -f docker-compose.yml -f docker-compose-local.yaml up -d
 ```
 
 ### DB seeden
 
 ```bash
 DOCKER_CONFIG=/tmp/docker-clean-config docker-compose exec api python /app/seed.py
-```
-
-### Stoppen
-
-```bash
-DOCKER_CONFIG=/tmp/docker-clean-config docker-compose down
 ```
 
 ---
@@ -162,8 +139,14 @@ podman network rm my-fit-food-net
 | Umgebung | URL |
 |---|---|
 | docker-compose | https://localhost:443 |
-| podman-compose (Port-Konflikt) | https://localhost:8443 |
+| docker-compose (lokal, macOS/Podman) | https://localhost:8443 |
 | manuell (podman run) | https://localhost:8443 |
+
+Auf macOS blockiert Podmans `gvproxy` Port 443. Mit der Override-Datei wird Port 8443 auf dem Host verwendet:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose-local.yaml up -d
+```
 
 Standard-Logins: `admin` / `admin`, `andressa` / `123`, `cozinha` / `123`
 

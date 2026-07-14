@@ -15,6 +15,7 @@
 | Seed DB | `cd api && source .venv/bin/activate && python seed.py` | Must import all model classes in `seed.py` |
 | Docker build | `docker compose build` | Baut beide Images (API + Web) |
 | Docker start | `docker compose up -d` | Startet Container im Hintergrund |
+| Docker start (lokal) | `docker compose -f docker-compose.yml -f docker-compose-local.yaml up -d` | Port 8443 statt 443 (Podman/macOS) |
 | Docker stop | `docker compose down` | Stoppt und entfernt Container |
 | DB seeden (Docker) | `docker compose exec api python /app/seed.py` | Nach `up -d` ausführen |
 | Logs (Docker) | `docker compose logs -f` | Folgt allen Logs |
