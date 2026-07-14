@@ -1,0 +1,17 @@
+https://:443 {
+	tls internal
+
+	root * /usr/share/caddy
+
+	@api {
+		path /api/*
+	}
+	handle @api {
+		uri strip_prefix /api
+		reverse_proxy api:8000
+	}
+
+	handle {
+		file_server
+	}
+}
