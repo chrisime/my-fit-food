@@ -7,8 +7,8 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.order import Order
 from app.models.product import Product
-from app.models.stock import StockMovement
 from app.models.user import User
+from app.services.stock import compute_stock_balance
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -48,37 +48,17 @@ def dashboard(
 
     products_active = db.query(Product).filter(Product.is_active.is_(True)).count()
 
-    products_all = db.query(Product).filter(Product.is_active.is_(True)).all()
-    low_stock = []
-    for p in products_all:
-        total_in = (
-            db.query(StockMovement)
-            .filter(
-                StockMovement.product_id == p.id,
-                StockMovement.type == "in",
-            )
-            .with_entities(StockMovement.quantity)
-            .all()
-        )
-        total_out = (
-            db.query(StockMovement)
-            .filter(
-                StockMovement.product_id == p.id,
-                StockMovement.type.in_(["out", "production"]),
-            )
-            .with_entities(StockMovement.quantity)
-            .all()
-        )
-        balance = sum(q[0] for q in total_in) - sum(q[0] for q in total_out)
-        if balance < 5:
-            low_stock.append(
-                {
-                    "id": p.id,
-                    "name": p.name,
-                    "balance": balance,
-                    "unit": p.unit,
-                }
-            )
+    balance = compute_stock_balance(db)
+    low_stock = [
+        {
+            "id": b["product_id"],
+            "name": b["product_name"],
+            "balance": b["balance"],
+            "unit": b["unit"],
+        }
+        for b in balance
+        if b["balance"] < 5
+    ]
 
     recent_orders = (
         db.query(Order)

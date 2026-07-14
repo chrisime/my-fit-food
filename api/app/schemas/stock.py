@@ -1,6 +1,6 @@
-from datetime import datetime
-
 from pydantic import BaseModel
+
+from app.schemas.datetime import TzDatetime
 
 
 class StockMovementOut(BaseModel):
@@ -12,7 +12,8 @@ class StockMovementOut(BaseModel):
     reference_id: int | None
     notes: str | None
     created_by: int
-    created_at: datetime
+    created_at: TzDatetime
+    reversed: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -36,6 +37,6 @@ class ProductionOut(BaseModel):
     quantity: float
     notes: str | None
     created_by: int
-    created_at: datetime
+    created_at: TzDatetime
 
     model_config = {"from_attributes": True}

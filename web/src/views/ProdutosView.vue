@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-const API = '/api'
-const token = () => localStorage.getItem('token') || ''
+import { get, post, put, del } from '@/composables/api'
 
 interface Product {
   id: number
@@ -24,17 +22,14 @@ const form = ref({
   description: '',
   price: 0,
   category: '',
-  unit: 'un',
+  unit: 'un' as string,
   is_active: true,
 })
 
 onMounted(loadProducts)
 
 async function loadProducts() {
-  const res = await fetch(`${API}/products/?active_only=false`, {
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (res.ok) products.value = await res.json()
+  products.value = await get<Product[]>('/products/?active_only=false')
 }
 
 function openNew() {
@@ -60,38 +55,27 @@ function openEdit(p: Product) {
 
 async function save() {
   const body = { ...form.value, description: form.value.description || null, category: form.value.category || null }
-  const url = isNew.value ? `${API}/products/` : `${API}/products/${editing.value!.id}`
-  const method = isNew.value ? 'POST' : 'PUT'
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    body: JSON.stringify(body),
-  })
-  if (res.ok) {
-    showModal.value = false
-    await loadProducts()
+  if (isNew.value) {
+    await post('/products/', body)
+  } else {
+    await put(`/products/${editing.value!.id}`, body)
   }
+  showModal.value = false
+  await loadProducts()
 }
 
 async function deleteProduct(p: Product) {
   if (!confirm(`Excluir "${p.name}"?`)) return
-  const res = await fetch(`${API}/products/${p.id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (!res.ok) {
-    const msg = await res.json().then((d) => d.detail).catch(() => 'Erro ao excluir')
-    alert(msg)
+  try {
+    await del(`/products/${p.id}`)
+  } catch {
+    alert('Erro ao excluir')
   }
   await loadProducts()
 }
 
 async function toggleActive(p: Product) {
-  await fetch(`${API}/products/${p.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    body: JSON.stringify({ is_active: !p.is_active }),
-  })
+  await put(`/products/${p.id}`, { is_active: !p.is_active })
   await loadProducts()
 }
 </script>

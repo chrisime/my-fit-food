@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-const API = '/api'
-const token = () => localStorage.getItem('token') || ''
+import { get } from '@/composables/api'
 
 const stats = ref({
   orders_today: 0,
@@ -14,10 +12,7 @@ const stats = ref({
 })
 
 onMounted(async () => {
-  const res = await fetch(`${API}/dashboard/`, {
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (res.ok) stats.value = await res.json()
+  stats.value = await get('/dashboard/')
 })
 </script>
 

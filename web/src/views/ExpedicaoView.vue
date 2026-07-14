@@ -2,9 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useAuthStore } from '@/stores/auth'
-
-const API = '/api'
-const token = () => localStorage.getItem('token') || ''
+import { get } from '@/composables/api'
 
 const store = useOrderStore()
 const auth = useAuthStore()
@@ -18,10 +16,7 @@ const historyOrders = computed(() =>
 )
 
 async function fetchBalance() {
-  const res = await fetch(`${API}/stock/balance`, {
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (res.ok) stockBalance.value = await res.json()
+  stockBalance.value = await get('/stock/balance')
 }
 
 function stockFor(productId: number): number {
@@ -39,6 +34,16 @@ onMounted(async () => {
 
 function formatDate(dt: string) {
   return new Date(dt).toLocaleString('pt-BR')
+}
+
+async function deliverAndRefresh(orderId: number) {
+  await store.deliverOrder(orderId)
+  await fetchBalance()
+}
+
+async function reverseAndRefresh(orderId: number) {
+  await store.reverseDelivery(orderId)
+  await fetchBalance()
 }
 </script>
 
@@ -111,7 +116,7 @@ function formatDate(dt: string) {
           <button
             v-if="!orderHasMissingStock(order)"
             class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2 px-3 rounded"
-            @click="store.deliverOrder(order.id)"
+            @click="deliverAndRefresh(order.id)"
           >
             Confirmar e Entregar
           </button>
@@ -134,7 +139,7 @@ function formatDate(dt: string) {
             <span class="text-gray-400">{{ formatDate(order.delivered_at || '') }}</span>
             <button
               v-if="auth.user?.role === 'admin'"
-              @click="store.reverseDelivery(order.id)"
+              @click="reverseAndRefresh(order.id)"
               class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded"
             >
               Reverter

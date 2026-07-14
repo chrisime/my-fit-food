@@ -7,6 +7,8 @@ from app.models.product import Product
 from app.models.stock import StockMovement
 from app.models.user import User
 from app.schemas.stock import StockAdjust, StockMovementOut
+from app.services.crud import get_or_404
+from app.services.stock import compute_stock_balance
 
 router = APIRouter(prefix="/stock", tags=["stock"])
 
@@ -30,9 +32,7 @@ def adjust_stock(
     db: Session = Depends(get_db),
     user: User = Depends(require_role("admin")),
 ):
-    product = db.query(Product).filter(Product.id == body.product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    get_or_404(db, Product, body.product_id, "Product not found")
     movement = StockMovement(
         product_id=body.product_id,
         type=body.type,
@@ -51,34 +51,4 @@ def stock_balance(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    products = db.query(Product).filter(Product.is_active.is_(True)).all()
-    result = []
-    for p in products:
-        total_in = (
-            db.query(StockMovement)
-            .filter(
-                StockMovement.product_id == p.id,
-                StockMovement.type == "in",
-            )
-            .with_entities(StockMovement.quantity)
-            .all()
-        )
-        total_out = (
-            db.query(StockMovement)
-            .filter(
-                StockMovement.product_id == p.id,
-                StockMovement.type == "out",
-            )
-            .with_entities(StockMovement.quantity)
-            .all()
-        )
-        balance = sum(q[0] for q in total_in) - sum(q[0] for q in total_out)
-        result.append(
-            {
-                "product_id": p.id,
-                "product_name": p.name,
-                "unit": p.unit,
-                "balance": balance,
-            }
-        )
-    return result
+    return compute_stock_balance(db)

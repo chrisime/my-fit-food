@@ -10,8 +10,25 @@ from app.models.product import Product
 from app.models.stock import StockMovement
 from app.models.user import User
 from app.schemas.order import OrderCreate, OrderOut, OrderUpdate, PaymentUpdate
+from app.services.crud import get_or_404
+from app.ws.manager import notify_clients
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+
+def _build_items(db: Session, items_data: list):
+    items = []
+    for item_in in items_data:
+        product = get_or_404(db, Product, item_in.product_id, f"Product {item_in.product_id} not found")
+        items.append(
+            OrderItem(
+                product_id=product.id,
+                quantity=item_in.quantity,
+                unit_price=product.price,
+                is_free=item_in.is_free,
+            )
+        )
+    return items
 
 
 @router.get("/", response_model=list[OrderOut])
@@ -35,22 +52,6 @@ def create_order(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    items = []
-    for item_in in body.items:
-        product = db.query(Product).filter(Product.id == item_in.product_id).first()
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Product {item_in.product_id} not found",
-            )
-        items.append(
-            OrderItem(
-                product_id=product.id,
-                quantity=item_in.quantity,
-                unit_price=product.price,
-                is_free=item_in.is_free,
-            )
-        )
     order = Order(
         customer_name=body.customer_name,
         customer_phone=body.customer_phone,
@@ -60,7 +61,7 @@ def create_order(
         notes=body.notes,
         payment_status=body.payment_status,
         created_by=user.id,
-        items=items,
+        items=_build_items(db, body.items),
     )
     db.add(order)
     db.commit()
@@ -75,32 +76,15 @@ def update_order(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     if order.payment_status != "pending":
         raise HTTPException(status_code=400, detail="Só é possível editar pedidos pendentes")
 
     order.notes = body.notes
-
     order.items.clear()
     db.flush()
 
-    for item_in in body.items:
-        product = db.query(Product).filter(Product.id == item_in.product_id).first()
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Product {item_in.product_id} not found",
-            )
-        order.items.append(
-            OrderItem(
-                product_id=product.id,
-                quantity=item_in.quantity,
-                unit_price=product.price,
-                is_free=item_in.is_free,
-            )
-        )
+    order.items = _build_items(db, body.items)
 
     db.commit()
     db.refresh(order)
@@ -113,9 +97,7 @@ def delete_order(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     if order.payment_status != "pending":
         raise HTTPException(status_code=400, detail="Só é possível excluir pedidos pendentes")
     db.delete(order)
@@ -129,9 +111,7 @@ def update_payment(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     order.payment_status = body.payment_status
     db.commit()
     db.refresh(order)
@@ -144,9 +124,7 @@ def reverse_payment(
     db: Session = Depends(get_db),
     _: User = Depends(require_role("admin")),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     order.payment_status = "pending"
     db.commit()
     db.refresh(order)
@@ -157,17 +135,30 @@ def reverse_payment(
 def reverse_delivery(
     order_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(require_role("admin")),
+    user: User = Depends(require_role("admin")),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     if order.status != "delivered":
         raise HTTPException(status_code=400, detail="Order is not delivered")
+
+    movements = (
+        db.query(StockMovement)
+        .filter(
+            StockMovement.reference_type == "order",
+            StockMovement.reference_id == order.id,
+            StockMovement.type == "out",
+            StockMovement.reversed.is_(False),
+        )
+        .all()
+    )
+    for m in movements:
+        m.reversed = True
+
     order.status = "pending"
     order.delivered_at = None
     db.commit()
     db.refresh(order)
+    notify_clients("stock_updated", {"order_id": order.id})
     return order
 
 
@@ -177,9 +168,7 @@ def deliver_order(
     db: Session = Depends(get_db),
     user: User = Depends(require_role("admin")),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    order = get_or_404(db, Order, order_id, "Order not found")
     if order.status == "delivered":
         raise HTTPException(status_code=400, detail="Order already delivered")
 
@@ -199,4 +188,5 @@ def deliver_order(
     order.delivered_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(order)
+    notify_clients("stock_updated", {"order_id": order.id})
     return order

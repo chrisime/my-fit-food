@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-const API = '/api'
-const token = () => localStorage.getItem('token') || ''
+import { get, post, put, del } from '@/composables/api'
 
 interface Customer {
   id: number
@@ -26,10 +24,7 @@ const form = ref({ name: '', phone: '', address_street: '', address_neighborhood
 onMounted(loadCustomers)
 
 async function loadCustomers() {
-  const res = await fetch(`${API}/customers/`, {
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (res.ok) customers.value = await res.json()
+  customers.value = await get<Customer[]>('/customers/')
 }
 
 function openNew() {
@@ -66,26 +61,22 @@ async function save() {
     address2_city: form.value.address2_city || null,
     notes: form.value.notes || null,
   }
-  const url = editingId.value ? `${API}/customers/${editingId.value}` : `${API}/customers/`
-  const method = editingId.value ? 'PUT' : 'POST'
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    body: JSON.stringify(body),
-  })
-  if (res.ok) {
-    showModal.value = false
-    await loadCustomers()
+  if (editingId.value) {
+    await put(`/customers/${editingId.value}`, body)
+  } else {
+    await post('/customers/', body)
   }
+  showModal.value = false
+  await loadCustomers()
 }
 
 async function deleteCustomer(c: Customer) {
   if (!confirm(`Excluir "${c.name}"?`)) return
-  const res = await fetch(`${API}/customers/${c.id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (!res.ok) alert('Erro ao excluir cliente')
+  try {
+    await del(`/customers/${c.id}`)
+  } catch {
+    alert('Erro ao excluir cliente')
+  }
   await loadCustomers()
 }
 </script>

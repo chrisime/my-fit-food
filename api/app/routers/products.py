@@ -6,6 +6,7 @@ from app.core.deps import get_current_user
 from app.models.product import Product
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductOut, ProductUpdate
+from app.services.crud import get_or_404
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -42,9 +43,7 @@ def update_product(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    product = get_or_404(db, Product, product_id, "Product not found")
     for key, val in body.model_dump(exclude_unset=True).items():
         setattr(product, key, val)
     db.commit()
@@ -58,9 +57,7 @@ def delete_product(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    product = get_or_404(db, Product, product_id, "Product not found")
     db.delete(product)
     try:
         db.commit()

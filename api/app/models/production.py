@@ -15,7 +15,7 @@ class Production(Base):
     notes: Mapped[str | None] = mapped_column(String(300), nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     product: Mapped["Product"] = relationship()

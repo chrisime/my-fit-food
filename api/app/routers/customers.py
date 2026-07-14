@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -6,6 +6,7 @@ from app.core.deps import get_current_user
 from app.models.customer import Customer
 from app.models.user import User
 from app.schemas.customer import CustomerCreate, CustomerOut, CustomerUpdate
+from app.services.crud import get_or_404
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -24,10 +25,7 @@ def get_customer(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    customer = db.query(Customer).filter(Customer.id == customer_id).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
-    return customer
+    return get_or_404(db, Customer, customer_id, "Customer not found")
 
 
 @router.post("/", response_model=CustomerOut, status_code=201)
@@ -50,9 +48,7 @@ def update_customer(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    customer = db.query(Customer).filter(Customer.id == customer_id).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    customer = get_or_404(db, Customer, customer_id, "Customer not found")
     for key, val in body.model_dump(exclude_unset=True).items():
         setattr(customer, key, val)
     db.commit()
@@ -66,8 +62,6 @@ def delete_customer(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    customer = db.query(Customer).filter(Customer.id == customer_id).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    customer = get_or_404(db, Customer, customer_id, "Customer not found")
     db.delete(customer)
     db.commit()

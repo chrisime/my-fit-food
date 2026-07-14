@@ -1,6 +1,6 @@
-from datetime import datetime
-
 from pydantic import BaseModel
+
+from app.schemas.datetime import TzDatetime
 
 
 class OrderItemIn(BaseModel):
@@ -42,8 +42,8 @@ class OrderOut(BaseModel):
     payment_status: str
     status: str
     created_by: int
-    created_at: datetime
-    delivered_at: datetime | None
+    created_at: TzDatetime
+    delivered_at: TzDatetime | None
     items: list[OrderItemOut]
 
     model_config = {"from_attributes": True}

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-const API = '/api'
-const token = () => localStorage.getItem('token') || ''
+import { get, post, put, del } from '@/composables/api'
 
 interface User {
   id: number
@@ -21,11 +19,7 @@ const form = ref({ username: '', password: '', full_name: '', role: 'vendas' })
 onMounted(loadUsers)
 
 async function loadUsers() {
-  const res = await fetch(`${API}/auth/users`, {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (res.ok) users.value = await res.json()
+  users.value = await get<User[]>('/auth/users')
 }
 
 function openNew() {
@@ -44,36 +38,26 @@ function openEdit(u: User) {
 
 async function deleteUser(u: User) {
   if (!confirm(`Excluir "${u.full_name}" (${u.username})?`)) return
-  const res = await fetch(`${API}/auth/users/${u.id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token()}` },
-  })
-  if (!res.ok) {
-    const msg = await res.json().then((d) => d.detail).catch(() => 'Erro ao excluir')
-    alert(msg)
+  try {
+    await del(`/auth/users/${u.id}`)
+  } catch {
+    alert('Erro ao excluir')
   }
   await loadUsers()
 }
 
 async function saveUser() {
-  const url = isEditing.value ? `${API}/auth/users/${editingUser.value!.id}` : `${API}/auth/users`
-  const method = isEditing.value ? 'PUT' : 'POST'
   const body = isEditing.value
     ? { username: form.value.username, full_name: form.value.full_name, role: form.value.role, password: form.value.password || undefined }
     : form.value
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    body: JSON.stringify(body),
-  })
-  if (res.ok) {
-    showModal.value = false
-    form.value = { username: '', password: '', full_name: '', role: 'vendas' }
-    await loadUsers()
+  if (isEditing.value) {
+    await put(`/auth/users/${editingUser.value!.id}`, body)
   } else {
-    const err = await res.json().then((d) => d.detail).catch(() => 'Erro')
-    alert(err)
+    await post('/auth/users', body)
   }
+  showModal.value = false
+  form.value = { username: '', password: '', full_name: '', role: 'vendas' }
+  await loadUsers()
 }
 </script>
 

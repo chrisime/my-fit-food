@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-
-const API = '/api'
+import { post } from '@/composables/api'
 
 interface User {
   id: number
@@ -19,13 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
 
   async function login(username: string, password: string) {
-    const res = await fetch(`${API}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    })
-    if (!res.ok) throw new Error('Invalid credentials')
-    const data = await res.json()
+    const data = await post<{ access_token: string; user: User }>('/auth/login', { username, password })
     token.value = data.access_token
     user.value = data.user
     localStorage.setItem('token', data.access_token)

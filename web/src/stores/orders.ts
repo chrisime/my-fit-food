@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
-const API = '/api'
+import { get, post, patch, put, del } from '@/composables/api'
 
 export interface OrderItem {
   id: number
@@ -31,16 +30,11 @@ export interface Order {
 export const useOrderStore = defineStore('orders', () => {
   const orders = ref<Order[]>([])
 
-  const token = () => localStorage.getItem('token') || ''
-
   async function fetchOrders(params?: { status?: string; payment_status?: string }) {
     const q = new URLSearchParams()
     if (params?.status) q.set('status', params.status)
     if (params?.payment_status) q.set('payment_status', params.payment_status)
-    const res = await fetch(`${API}/orders/?${q}`, {
-      headers: { Authorization: `Bearer ${token()}` },
-    })
-    if (res.ok) orders.value = await res.json()
+    orders.value = await get<Order[]>(`/orders/?${q}`)
   }
 
   async function createOrder(data: {
@@ -53,51 +47,26 @@ export const useOrderStore = defineStore('orders', () => {
     payment_status: string
     items: { product_id: number; quantity: number }[]
   }) {
-    const res = await fetch(`${API}/orders/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token()}`,
-      },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) throw new Error('Failed to create order')
-    return res.json()
+    return post<Order>('/orders/', data)
   }
 
   async function updatePayment(orderId: number, payment_status: string) {
-    const res = await fetch(`${API}/orders/${orderId}/payment`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token()}`,
-      },
-      body: JSON.stringify({ payment_status }),
-    })
-    if (res.ok) await fetchOrders()
+    await patch(`/orders/${orderId}/payment`, { payment_status })
+    await fetchOrders()
   }
 
   async function deliverOrder(orderId: number) {
-    const res = await fetch(`${API}/orders/${orderId}/deliver`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${token()}` },
-    })
-    if (res.ok) await fetchOrders()
+    await patch(`/orders/${orderId}/deliver`)
+    await fetchOrders()
   }
 
   async function reversePayment(orderId: number) {
-    await fetch(`${API}/orders/${orderId}/reverse-payment`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${token()}` },
-    })
+    await patch(`/orders/${orderId}/reverse-payment`)
     await fetchOrders()
   }
 
   async function reverseDelivery(orderId: number) {
-    await fetch(`${API}/orders/${orderId}/reverse-delivery`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${token()}` },
-    })
+    await patch(`/orders/${orderId}/reverse-delivery`)
     await fetchOrders()
   }
 
@@ -105,21 +74,12 @@ export const useOrderStore = defineStore('orders', () => {
     orderId: number,
     data: { notes?: string; items: { product_id: number; quantity: number }[] }
   ) {
-    const res = await fetch(`${API}/orders/${orderId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) throw new Error('Failed to update order')
+    await put(`/orders/${orderId}`, data)
     await fetchOrders()
   }
 
   async function deleteOrder(orderId: number) {
-    const res = await fetch(`${API}/orders/${orderId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token()}` },
-    })
-    if (!res.ok) throw new Error('Failed to delete order')
+    await del(`/orders/${orderId}`)
     await fetchOrders()
   }
 

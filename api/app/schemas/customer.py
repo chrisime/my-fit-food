@@ -1,6 +1,6 @@
-from datetime import datetime
-
 from pydantic import BaseModel
+
+from app.schemas.datetime import TzDatetime
 
 
 class CustomerCreate(BaseModel):
@@ -38,6 +38,6 @@ class CustomerOut(BaseModel):
     address2_neighborhood: str | None
     address2_city: str | None
     notes: str | None
-    created_at: datetime
+    created_at: TzDatetime
 
     model_config = {"from_attributes": True}

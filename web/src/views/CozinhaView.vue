@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useWebSocket } from '@/composables/useWebSocket'
+import { get, post } from '@/composables/api'
 
 const store = useOrderStore()
 const { on, off } = useWebSocket()
@@ -12,6 +13,14 @@ const productOptions = ref<{ label: string; value: number }[]>([])
 const currentRole = ref(localStorage.getItem('role') || '')
 const showProdForm = ref(false)
 const prodProductId = ref(0)
+const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' })
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  toast.value = { show: true, message, type }
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value.show = false }, 4000)
+}
 const prodQuantity = ref(1)
 const prodNotes = ref('')
 const showAdjustForm = ref(false)
@@ -30,23 +39,16 @@ onMounted(async () => {
 
 onUnmounted(() => {
   off('stock_updated')
+  if (toastTimer) clearTimeout(toastTimer)
 })
 
 async function loadProducts() {
-  const res = await fetch('/api/products/', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  })
-  if (res.ok) {
-    const products = await res.json()
-    productOptions.value = products.map((p: any) => ({ label: p.name, value: p.id }))
-  }
+  const products = await get<any[]>('/products/')
+  productOptions.value = products.map((p: any) => ({ label: p.name, value: p.id }))
 }
 
 async function fetchBalance() {
-  const res = await fetch('/api/stock/balance', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  })
-  if (res.ok) stockBalance.value = await res.json()
+  stockBalance.value = await get('/stock/balance')
 }
 
 const paidOrders = computed(() => store.orders.filter((o) => o.payment_status === 'paid' && o.status !== 'delivered'))
@@ -81,44 +83,40 @@ function quickProduce(productId: number) {
 }
 
 async function submitAdjust() {
-  await fetch('/api/stock/adjust', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify({
+  try {
+    await post('/stock/adjust', {
       product_id: adjustProductId.value,
       type: adjustType.value,
       quantity: adjustQuantity.value,
       notes: adjustNotes.value || undefined,
-    }),
-  })
-  adjustProductId.value = 0
-  adjustQuantity.value = 1
-  adjustNotes.value = ''
-  showAdjustForm.value = false
-  await fetchBalance()
+    })
+    adjustProductId.value = 0
+    adjustQuantity.value = 1
+    adjustNotes.value = ''
+    showAdjustForm.value = false
+    await fetchBalance()
+    showToast('Ajuste salvo com sucesso')
+  } catch {
+    showToast('Erro ao salvar ajuste', 'error')
+  }
 }
 
 async function submitProduction() {
-  await fetch('/api/production/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify({
+  try {
+    await post('/production/', {
       product_id: prodProductId.value,
       quantity: prodQuantity.value,
       notes: prodNotes.value,
-    }),
-  })
-  prodProductId.value = 0
-  prodQuantity.value = 1
-  prodNotes.value = ''
-  showProdForm.value = false
-  await fetchBalance()
+    })
+    prodProductId.value = 0
+    prodQuantity.value = 1
+    prodNotes.value = ''
+    showProdForm.value = false
+    await fetchBalance()
+    showToast('Produção registrada')
+  } catch {
+    showToast('Erro ao registrar produção', 'error')
+  }
 }
 </script>
 
@@ -129,7 +127,17 @@ async function submitProduction() {
       <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-3 rounded text-sm" @click="showStockModal = true">Estoque</button>
     </div>
 
-    <o-modal v-model:active="showStockModal" :width="1600">
+    <transition name="fade">
+    <div
+      v-if="toast.show"
+      class="fixed top-4 right-4 text-white px-4 py-3 rounded shadow-lg z-50 text-sm"
+      :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'"
+    >
+      {{ toast.message }}
+    </div>
+  </transition>
+
+  <o-modal v-model:active="showStockModal" :width="1600">
       <div class="rounded-lg overflow-hidden w-full">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
           <h3 class="text-lg font-bold">Estoque</h3>
@@ -273,3 +281,14 @@ async function submitProduction() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
