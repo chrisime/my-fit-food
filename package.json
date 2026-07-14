@@ -1,0 +1,14 @@
+{
+  "name": "my-fit-food",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "cd api && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "dev": "pnpm run --parallel dev:web dev:api",
+    "build:web": "pnpm --filter web build",
+    "db:init": "cd api && python -c 'from app.core.database import init_db; init_db()'"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47"
+  }
+}
