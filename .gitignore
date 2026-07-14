@@ -2,6 +2,9 @@ node_modules
 dist
 .env
 *.db
+*.db.bkp
 __pycache__
 *.pyc
 .pytest_cache
+.venv
+api/.venv
