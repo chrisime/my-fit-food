@@ -2,7 +2,7 @@ services:
   api:
     build: ./api
     volumes:
-      - api-data:/app
+      - api-data:/app/data
     env_file:
       - ./api/.env
     restart: unless-stopped
