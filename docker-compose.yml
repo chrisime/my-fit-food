@@ -1,0 +1,21 @@
+services:
+  api:
+    build: ./api
+    volumes:
+      - api-data:/app
+    env_file:
+      - ./api/.env
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "443:443"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  api-data:
