@@ -1,4 +1,4 @@
-https://:443 {
+https://localhost:443 {
 	tls internal
 
 	root * /usr/share/caddy
@@ -12,8 +12,7 @@ https://:443 {
 	}
 
 	handle {
-		file_server {
-			try_files {path} /index.html
-		}
+		try_files {path} /index.html
+		file_server
 	}
 }
