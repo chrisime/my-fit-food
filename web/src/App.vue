@@ -25,6 +25,7 @@ onMounted(() => {
           <router-link to="/cozinha" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'cozinha' || auth.user?.role === 'admin'">Cozinha</router-link>
           <router-link to="/expedicao" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'admin'">Expedição</router-link>
           <router-link to="/produtos" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'admin' || auth.user?.role === 'vendas'">Produtos</router-link>
+          <router-link to="/estoque" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium">Estoque</router-link>
         </div>
       </div>
       <div class="flex-1 text-center text-sm">
