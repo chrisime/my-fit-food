@@ -7,7 +7,6 @@ import { get } from '@/composables/api'
 const store = useOrderStore()
 const auth = useAuthStore()
 const stockBalance = ref<{ product_id: number; product_name: string; balance: number; unit: string }[]>([])
-const showStock = ref(false)
 const paidOrders = computed(() =>
   store.orders.filter((o) => o.payment_status === 'paid' && o.status !== 'delivered')
 )
@@ -51,38 +50,9 @@ async function reverseAndRefresh(orderId: number) {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Expedição — Conferência Final</h2>
-      <button
-        class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded"
-        @click="showStock = true"
-      >
-        Ver Estoque
-      </button>
+      <router-link to="/estoque" class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded">Ver Estoque</router-link>
     </div>
 
-    <o-modal v-model:active="showStock" :width="600">
-      <div class="rounded-lg overflow-hidden">
-        <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
-          <h3 class="text-lg font-bold">Saldo do Estoque</h3>
-          <button class="text-white/80 hover:text-white text-xl leading-none" @click="showStock = false">&times;</button>
-        </div>
-        <div class="p-6">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b text-left">
-                <th class="py-2">Produto</th>
-                <th class="py-2 text-right">Saldo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="s in stockBalance" :key="s.product_id" class="border-b hover:bg-gray-50">
-                <td class="py-2">{{ s.product_name }}</td>
-                <td class="py-2 text-right font-mono" :class="s.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ s.balance }} {{ s.unit }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </o-modal>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
