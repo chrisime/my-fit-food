@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_role
+from app.core.deps import get_current_user
 from app.models.product import Product
 from app.models.stock import StockMovement
 from app.models.user import User
@@ -30,8 +30,12 @@ def list_movements(
 def adjust_stock(
     body: StockAdjust,
     db: Session = Depends(get_db),
-    user: User = Depends(require_role("admin")),
+    user: User = Depends(get_current_user),
 ):
+    if user.role not in ("admin", "cozinha"):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if user.role == "cozinha" and body.type != "in":
+        raise HTTPException(status_code=403, detail="Cozinha can only add stock (type 'in')")
     get_or_404(db, Product, body.product_id, "Product not found")
     movement = StockMovement(
         product_id=body.product_id,
