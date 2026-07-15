@@ -1,67 +1,38 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.deps import get_current_user
-from app.models.customer import Customer
-from app.models.user import User
+from app.core.deps import SessionUser, get_session
 from app.schemas.customer import CustomerCreate, CustomerOut, CustomerUpdate
-from app.services.crud import get_or_404
+from app.services.customer import (
+    create_customer,
+    delete_customer,
+    get_customer,
+    list_customers,
+    update_customer,
+)
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
 
 @router.get("/", response_model=list[CustomerOut])
-def list_customers(
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    return db.query(Customer).order_by(Customer.name).all()
+def list_customers_endpoint(s: SessionUser = Depends(get_session)):
+    return list_customers(s.db)
 
 
 @router.get("/{customer_id}", response_model=CustomerOut)
-def get_customer(
-    customer_id: int,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    return get_or_404(db, Customer, customer_id, "Customer not found")
+def get_customer_endpoint(customer_id: int, s: SessionUser = Depends(get_session)):
+    return get_customer(s.db, customer_id)
 
 
 @router.post("/", response_model=CustomerOut, status_code=201)
-def create_customer(
-    body: CustomerCreate,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    customer = Customer(**body.model_dump())
-    db.add(customer)
-    db.commit()
-    db.refresh(customer)
-    return customer
+def create_customer_endpoint(body: CustomerCreate, s: SessionUser = Depends(get_session)):
+    return create_customer(s.db, body)
 
 
 @router.put("/{customer_id}", response_model=CustomerOut)
-def update_customer(
-    customer_id: int,
-    body: CustomerUpdate,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    customer = get_or_404(db, Customer, customer_id, "Customer not found")
-    for key, val in body.model_dump(exclude_unset=True).items():
-        setattr(customer, key, val)
-    db.commit()
-    db.refresh(customer)
-    return customer
+def update_customer_endpoint(customer_id: int, body: CustomerUpdate, s: SessionUser = Depends(get_session)):
+    return update_customer(s.db, customer_id, body)
 
 
 @router.delete("/{customer_id}", status_code=204)
-def delete_customer(
-    customer_id: int,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    customer = get_or_404(db, Customer, customer_id, "Customer not found")
-    db.delete(customer)
-    db.commit()
+def delete_customer_endpoint(customer_id: int, s: SessionUser = Depends(get_session)):
+    delete_customer(s.db, customer_id)

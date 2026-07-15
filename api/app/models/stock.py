@@ -16,6 +16,7 @@ class StockMovement(Base):
     reference_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
     reference_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     notes: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reversed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(

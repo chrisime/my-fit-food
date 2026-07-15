@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -37,3 +39,22 @@ def require_role(role: str):
             )
         return user
     return checker
+
+
+class SessionUser(NamedTuple):
+    db: Session
+    user: User
+
+
+def get_session(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SessionUser:
+    return SessionUser(db=db, user=user)
+
+
+def get_session_admin(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("admin")),
+) -> SessionUser:
+    return SessionUser(db=db, user=user)

@@ -1,6 +1,13 @@
+from datetime import date as date_type
+
 from pydantic import BaseModel
 
 from app.schemas.datetime import TzDatetime
+
+
+class BatchExpiresAtUpdate(BaseModel):
+    movement_ids: list[int]
+    expires_at: date_type
 
 
 class StockMovementOut(BaseModel):
@@ -11,6 +18,7 @@ class StockMovementOut(BaseModel):
     reference_type: str | None
     reference_id: int | None
     notes: str | None
+    expires_at: TzDatetime | None = None
     created_by: int
     created_at: TzDatetime
     reversed: bool = False
@@ -18,17 +26,12 @@ class StockMovementOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class StockAdjust(BaseModel):
-    product_id: int
-    type: str = "in"
-    quantity: float = 1
-    notes: str | None = None
-
-
 class ProductionCreate(BaseModel):
     product_id: int
     quantity: float
+    type: str = "in"
     notes: str | None = None
+    expires_at: str | None = None
 
 
 class ProductionOut(BaseModel):

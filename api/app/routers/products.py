@@ -1,69 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends
 
-from app.core.database import get_db
-from app.core.deps import get_current_user
-from app.models.product import Product
-from app.models.user import User
+from app.core.deps import SessionUser, get_session
 from app.schemas.product import ProductCreate, ProductOut, ProductUpdate
-from app.services.crud import get_or_404
+from app.services.product import (
+    create_product,
+    delete_product,
+    list_products,
+    update_product,
+)
 
 router = APIRouter(prefix="/products", tags=["products"])
 
 
 @router.get("/", response_model=list[ProductOut])
-def list_products(
+def list_products_endpoint(
     active_only: bool = True,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    s: SessionUser = Depends(get_session),
 ):
-    q = db.query(Product)
-    if active_only:
-        q = q.filter(Product.is_active.is_(True))
-    return q.order_by(Product.name).all()
+    return list_products(s.db, active_only)
 
 
 @router.post("/", response_model=ProductOut, status_code=201)
-def create_product(
-    body: ProductCreate,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    product = Product(**body.model_dump())
-    db.add(product)
-    db.commit()
-    db.refresh(product)
-    return product
+def create_product_endpoint(body: ProductCreate, s: SessionUser = Depends(get_session)):
+    return create_product(s.db, body)
 
 
 @router.put("/{product_id}", response_model=ProductOut)
-def update_product(
-    product_id: int,
-    body: ProductUpdate,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    product = get_or_404(db, Product, product_id, "Product not found")
-    for key, val in body.model_dump(exclude_unset=True).items():
-        setattr(product, key, val)
-    db.commit()
-    db.refresh(product)
-    return product
+def update_product_endpoint(product_id: int, body: ProductUpdate, s: SessionUser = Depends(get_session)):
+    return update_product(s.db, product_id, body)
 
 
 @router.delete("/{product_id}", status_code=204)
-def delete_product(
-    product_id: int,
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    product = get_or_404(db, Product, product_id, "Product not found")
-    db.delete(product)
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="Produto possui pedidos ou movimentações vinculadas. Desative-o em vez de excluir.",
-        )
+def delete_product_endpoint(product_id: int, s: SessionUser = Depends(get_session)):
+    delete_product(s.db, product_id)

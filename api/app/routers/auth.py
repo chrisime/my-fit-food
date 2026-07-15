@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_role
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.deps import SessionUser, get_session, get_session_admin
+from app.core.security import create_access_token, verify_password
 from app.models.user import User
 from app.schemas.user import LoginRequest, Token, UserCreate, UserOut
+from app.services.user import create_user, delete_user, list_users, update_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,69 +24,25 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/users", response_model=UserOut)
-def create_user(
-    body: UserCreate,
-    db: Session = Depends(get_db),
-    _: User = Depends(require_role("admin")),
-):
-    existing = db.query(User).filter(User.username == body.username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Username already taken")
-    user = User(
-        username=body.username,
-        hashed_password=hash_password(body.password),
-        full_name=body.full_name,
-        role=body.role,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+def create_user_endpoint(body: UserCreate, s: SessionUser = Depends(get_session_admin)):
+    return create_user(s.db, body)
 
 
 @router.get("/users", response_model=list[UserOut])
-def list_users(
-    db: Session = Depends(get_db),
-    _: User = Depends(require_role("admin")),
-):
-    return db.query(User).order_by(User.full_name).all()
+def list_users_endpoint(s: SessionUser = Depends(get_session_admin)):
+    return list_users(s.db)
 
 
 @router.put("/users/{user_id}", response_model=UserOut)
-def update_user(
-    user_id: int,
-    body: UserCreate,
-    db: Session = Depends(get_db),
-    _: User = Depends(require_role("admin")),
-):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.username = body.username
-    user.full_name = body.full_name
-    user.role = body.role
-    if body.password:
-        user.hashed_password = hash_password(body.password)
-    db.commit()
-    db.refresh(user)
-    return user
+def update_user_endpoint(user_id: int, body: UserCreate, s: SessionUser = Depends(get_session_admin)):
+    return update_user(s.db, user_id, body)
 
 
 @router.delete("/users/{user_id}", status_code=204)
-def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin")),
-):
-    if current_user.id == user_id:
-        raise HTTPException(status_code=400, detail="Não pode excluir a si mesmo")
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(user)
-    db.commit()
+def delete_user_endpoint(user_id: int, s: SessionUser = Depends(get_session_admin)):
+    delete_user(s.db, user_id, s.user.id)
 
 
 @router.get("/users/me", response_model=UserOut)
-def me(user: User = Depends(get_current_user)):
-    return user
+def me(s: SessionUser = Depends(get_session)):
+    return s.user

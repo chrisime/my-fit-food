@@ -1,58 +1,44 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.deps import get_current_user
-from app.models.product import Product
+from app.core.deps import SessionUser, get_session, get_session_admin
 from app.models.stock import StockMovement
-from app.models.user import User
-from app.schemas.stock import StockAdjust, StockMovementOut
-from app.services.crud import get_or_404
+from app.schemas.stock import BatchExpiresAtUpdate, StockMovementOut
 from app.services.stock import compute_stock_balance
 
 router = APIRouter(prefix="/stock", tags=["stock"])
 
 
 @router.get("/", response_model=list[StockMovementOut])
-def list_movements(
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
+def list_movements(s: SessionUser = Depends(get_session)):
     return (
-        db.query(StockMovement)
+        s.db.query(StockMovement)
         .order_by(StockMovement.created_at.desc())
         .limit(200)
         .all()
     )
 
 
-@router.post("/adjust", response_model=StockMovementOut, status_code=201)
-def adjust_stock(
-    body: StockAdjust,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    if user.role not in ("admin", "cozinha"):
-        raise HTTPException(status_code=403, detail="Not allowed")
-    if user.role == "cozinha" and body.type != "in":
-        raise HTTPException(status_code=403, detail="Cozinha can only add stock (type 'in')")
-    get_or_404(db, Product, body.product_id, "Product not found")
-    movement = StockMovement(
-        product_id=body.product_id,
-        type=body.type,
-        quantity=body.quantity,
-        notes=body.notes or f"Ajuste manual ({body.type})",
-        created_by=user.id,
-    )
-    db.add(movement)
-    db.commit()
-    db.refresh(movement)
-    return movement
-
-
 @router.get("/balance", response_model=list[dict])
-def stock_balance(
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+def stock_balance(s: SessionUser = Depends(get_session)):
+    return compute_stock_balance(s.db)
+
+
+@router.patch("/batch/expires-at", status_code=204)
+def update_batch_expires_at(
+    body: BatchExpiresAtUpdate,
+    s: SessionUser = Depends(get_session_admin),
 ):
-    return compute_stock_balance(db)
+    movements = (
+        s.db.query(StockMovement)
+        .filter(
+            StockMovement.id.in_(body.movement_ids),
+            StockMovement.type == "in",
+            StockMovement.reversed.is_(False),
+        )
+        .all()
+    )
+    if not movements:
+        raise HTTPException(status_code=404, detail="No movements found")
+    for m in movements:
+        m.expires_at = body.expires_at
+    s.db.commit()
