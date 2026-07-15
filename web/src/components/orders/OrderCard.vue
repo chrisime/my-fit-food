@@ -36,12 +36,17 @@ function total(order: Order) {
           {{ [order.address_street, order.address_neighborhood, order.address_city].filter(Boolean).join(' — ') }}
         </p>
       </div>
-      <span
-        class="text-xs font-bold px-2 py-1 rounded"
-        :class="order.payment_status === 'paid' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'"
-      >
-        {{ order.payment_status === 'paid' ? 'PAGO' : 'PENDENTE' }}
-      </span>
+      <div class="flex gap-1">
+        <span
+          class="text-xs font-bold px-2 py-1 rounded"
+          :class="order.payment_status === 'paid' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'"
+        >
+          {{ order.payment_status === 'paid' ? 'PAGO' : 'PENDENTE' }}
+        </span>
+        <span v-if="order.status === 'delivered'" class="text-xs font-bold px-2 py-1 rounded bg-blue-200 text-blue-800">
+          ENTREGUE
+        </span>
+      </div>
     </div>
     <div class="mt-2 text-sm flex-1">
       <div v-for="item in order.items" :key="item.id" class="flex justify-between">
@@ -71,7 +76,7 @@ function total(order: Order) {
         </button>
       </div>
       <button
-        v-if="order.payment_status === 'paid' && role === 'admin'"
+        v-if="order.payment_status === 'paid' && role === 'admin' && order.status !== 'delivered'"
         @click="emit('reverse-payment', order.id)"
         class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-3 rounded"
       >

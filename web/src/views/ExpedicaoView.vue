@@ -65,6 +65,9 @@ async function reverseAndRefresh(orderId: number) {
           <div>
             <p class="font-bold text-lg">{{ order.customer_name }}</p>
             <p v-if="order.customer_phone" class="text-sm text-gray-500">{{ order.customer_phone }}</p>
+            <p v-if="order.address_street || order.address_neighborhood || order.address_city" class="text-xs text-gray-400 mt-1">
+              {{ [order.address_street, order.address_neighborhood, order.address_city].filter(Boolean).join(' — ') }}
+            </p>
             <p class="text-xs text-gray-400">{{ formatDate(order.created_at) }}</p>
           </div>
           <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-1 rounded">PAGO</span>
