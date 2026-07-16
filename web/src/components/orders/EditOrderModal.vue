@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useOrderStore, type Order } from '@/stores/orders'
+import { useI18n } from 'vue-i18n'
 
 const store = useOrderStore()
+const { t } = useI18n()
 
 const props = defineProps<{
   active: boolean
@@ -49,7 +51,7 @@ async function submitEditOrder() {
     emit('saved')
     emit('close')
   } catch {
-    emit('error', 'Erro ao atualizar pedido')
+    emit('error', t('error.unknown'))
   }
 }
 </script>
@@ -58,38 +60,38 @@ async function submitEditOrder() {
   <o-modal :active="active" :width="600" @update:active="(v: boolean) => !v && emit('close')">
     <div class="rounded-lg overflow-hidden">
       <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
-        <h3 class="text-lg font-bold">Editar Pedido — {{ order?.customer_name }}</h3>
+        <h3 class="text-lg font-bold">{{ $t('edit_order.title', { customer: order?.customer_name }) }}</h3>
         <button class="text-white/80 hover:text-white text-xl leading-none" @click="emit('close')">&times;</button>
       </div>
       <form @submit.prevent="submitEditOrder" class="p-6 space-y-4">
-        <o-field label="Observações">
+        <o-field :label="$t('edit_order.notes')">
           <o-input v-model="editNotes" type="textarea" />
         </o-field>
         <div class="border rounded-lg p-4 bg-gray-50 space-y-3">
-          <p class="text-sm font-semibold text-gray-600">Itens do Pedido</p>
+          <p class="text-sm font-semibold text-gray-600">{{ $t('edit_order.items') }}</p>
           <div v-for="(item, i) in editItems" :key="i" class="flex gap-3 items-end">
-            <o-field label="Produto" class="flex-1">
+            <o-field :label="$t('edit_order.product')" class="flex-1">
               <select v-model="item.product_id" class="w-full border rounded px-3 py-2 text-sm bg-white">
-                <option :value="0" disabled>Selecione</option>
+                <option :value="0" disabled>{{ $t('edit_order.select') }}</option>
                 <option v-for="p in productOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
               </select>
             </o-field>
-            <o-field label="Qtd" class="w-24">
+            <o-field :label="$t('edit_order.qty')" class="w-24">
               <o-input v-model="item.quantity" type="number" min="1" />
             </o-field>
             <label class="flex items-center gap-1 text-xs whitespace-nowrap mb-1" style="padding-bottom:2px">
               <input type="checkbox" v-model="item.is_free" class="w-3.5 h-3.5 rounded border-gray-300 text-green-600" />
-              Grátis
+              {{ $t('edit_order.free') }}
             </label>
           </div>
-          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="editItems.push({ product_id: 0, quantity: 1, is_free: false })">+ Adicionar item</button>
+          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="editItems.push({ product_id: 0, quantity: 1, is_free: false })">{{ $t('edit_order.add_item') }}</button>
         </div>
         <div class="text-right text-lg font-bold text-green-700">
-          Total: R$ {{ editTotalAmount.toFixed(2) }}
+          {{ $t('edit_order.total') }} R$ {{ editTotalAmount.toFixed(2) }}
         </div>
         <div class="flex justify-end gap-3 pt-2 border-t">
-          <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="emit('close')">Cancelar</button>
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">Salvar</button>
+          <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="emit('close')">{{ $t('edit_order.cancel') }}</button>
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">{{ $t('edit_order.save') }}</button>
         </div>
       </form>
     </div>

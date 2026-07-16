@@ -2,8 +2,9 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useWebSocket } from '@/composables/useWebSocket'
+import { useToast } from '@/composables/useToast'
 import { get, post, patch } from '@/composables/api'
-import { unitLabel, formatQty } from '@/composables/labels'
+import { formatQty } from '@/composables/labels'
 
 const role = ref(localStorage.getItem('role') || '')
 const isAdmin = computed(() => role.value === 'admin')
@@ -11,6 +12,7 @@ const isKitchen = computed(() => role.value === 'kitchen')
 const canWrite = computed(() => isAdmin.value || isKitchen.value)
 
 const store = useOrderStore()
+const { toast, toastError } = useToast()
 
 const neededByOrders = computed(() => {
   const map: Record<number, number> = {}
@@ -53,16 +55,7 @@ const formQuantity = ref(1)
 const formNotes = ref('')
 const formExpiresAt = ref('')
 
-const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' })
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-
 const { on, off } = useWebSocket()
-
-function showToast(message: string, type: 'success' | 'error' = 'success') {
-  toast.value = { show: true, message, type }
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => { toast.value.show = false }, 4000)
-}
 
 const showEditModal = ref(false)
 const editingBatch = ref<Batch | null>(null)
@@ -72,6 +65,7 @@ function startEdit(batch: Batch) {
   editExpiresAt.value = batch.expires_at || ''
   showEditModal.value = true
 }
+
 async function saveExpiresAt() {
   if (!editingBatch.value) return
   try {
@@ -79,12 +73,12 @@ async function saveExpiresAt() {
       movement_ids: editingBatch.value.lot_ids,
       expires_at: editExpiresAt.value,
     })
-    showToast('Validade atualizada')
+    toast('success.expiry_updated', 'success')
     showEditModal.value = false
     editingBatch.value = null
     await fetchBalance()
-  } catch (e: any) {
-    showToast(e.message, 'error')
+  } catch (e) {
+    toastError(e)
   }
 }
 
@@ -111,7 +105,11 @@ function expiryClass(dateStr: string | null): string {
 }
 
 onMounted(async () => {
-  await Promise.all([store.fetchOrders(), fetchBalance(), loadProducts()])
+  try {
+    await Promise.all([store.fetchOrders(), fetchBalance(), loadProducts()])
+  } catch (e) {
+    toastError(e)
+  }
   on('stock_updated', () => {
     store.fetchOrders()
     fetchBalance()
@@ -120,7 +118,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   off('stock_updated')
-  if (toastTimer) clearTimeout(toastTimer)
 })
 
 async function loadProducts() {
@@ -133,8 +130,8 @@ async function fetchBalance() {
 }
 
 async function submitMovement() {
-  if (!formProductId.value) { showToast('Selecione um produto', 'error'); return }
-  if (formType.value === 'in' && !formExpiresAt.value) { showToast('Informe a data de validade', 'error'); return }
+  if (!formProductId.value) { toast('validation.select_product', 'warning'); return }
+  if (formType.value === 'in' && !formExpiresAt.value) { toast('validation.expiry_required', 'warning'); return }
   try {
     await post('/production/', {
       product_id: formProductId.value,
@@ -149,9 +146,9 @@ async function submitMovement() {
     formExpiresAt.value = ''
     showForm.value = false
     await fetchBalance()
-    showToast(formType.value === 'in' ? 'Produção registrada' : 'Saída registrada')
-  } catch {
-    showToast('Erro ao salvar movimento', 'error')
+    toast(formType.value === 'in' ? 'success.production_registered' : 'success.exit_registered', 'success')
+  } catch (e) {
+    toastError(e)
   }
 }
 </script>
@@ -159,30 +156,20 @@ async function submitMovement() {
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Estoque</h2>
+      <h2 class="text-xl font-semibold">{{ $t('page.stock.title') }}</h2>
     </div>
-
-    <transition name="fade">
-      <div
-        v-if="toast.show"
-        class="fixed top-4 right-4 text-white px-4 py-3 rounded shadow-lg z-50 text-sm"
-        :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'"
-      >
-        {{ toast.message }}
-      </div>
-    </transition>
 
     <div class="space-y-6">
       <div>
-        <p class="text-sm font-semibold text-gray-600 mb-2">Saldo Atual</p>
+        <p class="text-sm font-semibold text-gray-600 mb-2">{{ $t('page.stock.current_balance') }}</p>
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b text-left">
-              <th class="py-2">Produto</th>
-              <th class="py-2 text-right">Qtd</th>
-              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Necessário</th>
-              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Diferença</th>
-              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Validade</th>
+              <th class="py-2">{{ $t('page.stock.product') }}</th>
+              <th class="py-2 text-right">{{ $t('page.stock.qty') }}</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.needed') }}</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.difference') }}</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.expiry') }}</th>
               <th v-if="isAdmin" class="py-2 text-center w-10"></th>
             </tr>
           </thead>
@@ -195,20 +182,20 @@ async function submitMovement() {
                   </span>
                   {{ item.product_name }}
                 </td>
-                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ formatQty(item.balance, item.unit) }} {{ unitLabel(item.unit) }}</td>
-                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ unitLabel(item.unit) }}</td>
-                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ formatQty(item.balance - (neededByOrders[item.product_id] || 0), item.unit) }} {{ unitLabel(item.unit) }}</td>
+                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ formatQty(item.balance, item.unit) }} {{ $t('unit.' + item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ $t('unit.' + item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ formatQty(item.balance - (neededByOrders[item.product_id] || 0), item.unit) }} {{ $t('unit.' + item.unit) }}</td>
                 <td v-if="isAdmin || isKitchen" class="py-2"></td>
                 <td v-if="isAdmin" class="py-2"></td>
               </tr>
               <template v-if="expanded.has(item.product_id)">
                 <tr v-for="batch in item.batches" :key="batch.date" class="border-b hover:bg-gray-50 text-sm">
-                  <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.created_at) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
-                  <td class="py-1 text-right font-mono">{{ formatQty(batch.quantity, item.unit) }} {{ unitLabel(item.unit) }}</td>
+                  <td class="pl-6 text-gray-500">↳ {{ $t('page.stock.batch_info', { date: fmtDate(batch.created_at), ids: batch.lot_ids.join(', ') }) }}</td>
+                  <td class="py-1 text-right font-mono">{{ formatQty(batch.quantity, item.unit) }} {{ $t('unit.' + item.unit) }}</td>
                   <td v-if="isAdmin || isKitchen" colspan="2"></td>
                   <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
                   <td v-if="isAdmin" class="py-1 text-center">
-                    <button @click="startEdit(batch)" class="text-gray-400 hover:text-blue-600" title="Editar validade"><i class="mdi mdi-pencil"></i></button>
+                    <button @click="startEdit(batch)" class="text-gray-400 hover:text-blue-600" :title="$t('page.stock.edit_expiry_title')"><i class="mdi mdi-pencil"></i></button>
                   </td>
                 </tr>
               </template>
@@ -219,55 +206,55 @@ async function submitMovement() {
 
       <o-modal v-model:active="showEditModal" :width="400" @update:active="(v: boolean) => { if (!v) editingBatch = null }">
         <div class="p-4 space-y-4">
-          <p class="font-semibold">Editar Validade</p>
+          <p class="font-semibold">{{ $t('page.stock.edit_expiry_modal') }}</p>
           <p class="text-sm text-gray-600" v-if="editingBatch">
-            {{ fmtDate(editingBatch.date) }} — lote #{{ editingBatch.lot_ids.join(', lote #') }}
+            {{ $t('page.stock.batch_info', { date: fmtDate(editingBatch.date), ids: editingBatch.lot_ids.join(', ') }) }}
           </p>
-          <o-field label="Nova data de validade">
+          <o-field :label="$t('page.stock.new_expiry_date')">
             <o-input v-model="editExpiresAt" type="date" required />
           </o-field>
           <div class="flex justify-end gap-2">
-            <button @click="showEditModal = false" class="px-4 py-1.5 text-sm rounded border hover:bg-gray-100">Cancelar</button>
-            <button @click="saveExpiresAt" class="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Salvar</button>
+            <button @click="showEditModal = false" class="px-4 py-1.5 text-sm rounded border hover:bg-gray-100">{{ $t('page.stock.cancel') }}</button>
+            <button @click="saveExpiresAt" class="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">{{ $t('page.stock.save') }}</button>
           </div>
         </div>
       </o-modal>
 
       <form v-if="showForm && canWrite" @submit.prevent="submitMovement" class="border rounded-lg p-4 space-y-3 bg-gray-50">
-        <p class="text-sm font-semibold text-gray-600">Movimentar Estoque</p>
+        <p class="text-sm font-semibold text-gray-600">{{ $t('page.stock.movement_form') }}</p>
         <div class="flex gap-4">
-          <o-field label="Produto" class="flex-1">
+          <o-field :label="$t('page.stock.product_label')" class="flex-1">
             <select v-model="formProductId" class="w-full border rounded px-3 py-2 text-sm bg-white" required>
-              <option :value="0" disabled>Selecione</option>
+              <option :value="0" disabled>{{ $t('page.stock.select') }}</option>
               <option v-for="p in productOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
             </select>
           </o-field>
-          <o-field v-if="isAdmin" label="Tipo" class="w-32">
+          <o-field v-if="isAdmin" :label="$t('page.stock.type')" class="w-32">
             <select v-model="formType" class="w-full border rounded px-3 py-2 text-sm bg-white">
-              <option value="in">Entrada</option>
-              <option value="out">Saída</option>
+              <option value="in">{{ $t('page.stock.inbound') }}</option>
+              <option value="out">{{ $t('page.stock.outbound') }}</option>
             </select>
           </o-field>
-          <o-field v-else label="Tipo" class="w-32">
-            <div class="w-full border rounded px-3 py-2 text-sm bg-gray-100 text-gray-500">Entrada</div>
+          <o-field v-else :label="$t('page.stock.type')" class="w-32">
+            <div class="w-full border rounded px-3 py-2 text-sm bg-gray-100 text-gray-500">{{ $t('page.stock.inbound') }}</div>
           </o-field>
-          <o-field label="Qtd" class="w-32">
+          <o-field :label="$t('page.stock.qty_label')" class="w-32">
             <o-input v-model="formQuantity" type="number" min="1" required />
           </o-field>
         </div>
-        <o-field v-if="formType === 'in'" label="Validade" variant="danger" :message="!formExpiresAt && formType === 'in' ? 'Obrigatório' : ''">
+        <o-field v-if="formType === 'in'" :label="$t('page.stock.expiry_label')" variant="danger" :message="!formExpiresAt && formType === 'in' ? $t('page.stock.required') : ''">
           <o-input v-model="formExpiresAt" type="date" required />
         </o-field>
-        <o-field :label="formType === 'out' ? 'Motivo' : 'Observações'">
-          <o-input v-model="formNotes" type="textarea" :placeholder="formType === 'out' ? 'Ex: inventário, compra, quebra...' : ''" />
+        <o-field :label="formType === 'out' ? $t('page.stock.reason') : $t('page.stock.notes_label')">
+          <o-input v-model="formNotes" type="textarea" :placeholder="formType === 'out' ? $t('page.stock.placeholder_out') : ''" />
         </o-field>
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1.5 px-4 rounded">{{ formType === 'in' ? 'Registrar Entrada' : 'Registrar Saída' }}</button>
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1.5 px-4 rounded">{{ formType === 'in' ? $t('page.stock.register_inbound') : $t('page.stock.register_outbound') }}</button>
       </form>
 
       <div v-if="canWrite" class="flex justify-center pt-2 border-t">
         <button
           type="button"
-          :title="showForm ? 'Fechar' : 'Movimentar Estoque'"
+          :title="showForm ? $t('page.stock.close_title') : $t('page.stock.open_title')"
           class="p-2 rounded-full hover:bg-gray-200"
           :class="showForm ? 'text-green-600 bg-green-100' : 'text-gray-600'"
           @click="showForm = !showForm"
@@ -276,14 +263,3 @@ async function submitMovement() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

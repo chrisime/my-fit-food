@@ -1,3 +1,5 @@
+import { AppError } from '@/types/error'
+
 const BASE = '/api'
 
 function authHeaders(): Record<string, string> {
@@ -19,11 +21,15 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     localStorage.removeItem('user')
     localStorage.removeItem('role')
     window.location.href = '/login'
-    throw new Error('Sessão expirada')
+    throw new AppError('Session expired', 1003, 401)
   }
   if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    throw new Error(text || `Request failed: ${res.status}`)
+    const body = await res.json().catch(() => ({}))
+    throw new AppError(
+      body.detail || 'Unknown error',
+      body.code ?? res.status,
+      res.status,
+    )
   }
   if (res.status === 204) return undefined as T
   return res.json()

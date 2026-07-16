@@ -3,7 +3,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useAuthStore } from '@/stores/auth'
 import { useWebSocket } from '@/composables/useWebSocket'
+import { useToast } from '@/composables/useToast'
 import { get, post, put } from '@/composables/api'
+import { useI18n } from 'vue-i18n'
 import OrderCard from '@/components/orders/OrderCard.vue'
 import OrderFormModal from '@/components/orders/OrderFormModal.vue'
 import EditOrderModal from '@/components/orders/EditOrderModal.vue'
@@ -11,6 +13,8 @@ import EditOrderModal from '@/components/orders/EditOrderModal.vue'
 const store = useOrderStore()
 const auth = useAuthStore()
 const { on, off } = useWebSocket()
+const { toast, toastError } = useToast()
+const { t } = useI18n()
 
 const showForm = ref(false)
 const showEditForm = ref(false)
@@ -19,31 +23,26 @@ const customerOptions = ref<{ label: string; value: number }[]>([])
 const productOptions = ref<{ label: string; value: number }[]>([])
 const productPriceMap = ref<Record<number, number>>({})
 const search = ref('')
-const toast = ref<{ show: boolean; message: string }>({ show: false, message: '' })
-let toastTimer: ReturnType<typeof setTimeout> | null = null
 
 const showProductForm = ref(false)
 const editingProductId = ref<number | null>(null)
 const productForm = ref({ name: '', price: 0, description: '', category: '', unit: 'un', is_active: true })
 
 onMounted(async () => {
-  await Promise.all([store.fetchOrders(), loadProducts(), loadCustomers()])
+  try {
+    await Promise.all([store.fetchOrders(), loadProducts(), loadCustomers()])
+  } catch (e) {
+    toastError(e)
+  }
   on('stock_updated', () => {
     store.fetchOrders()
-    showToast('Estoque atualizado pela cozinha!')
+    toast('success.stock_updated_by_kitchen', 'success')
   })
 })
 
 onUnmounted(() => {
   off('stock_updated')
-  if (toastTimer) clearTimeout(toastTimer)
 })
-
-function showToast(message: string) {
-  toast.value = { show: true, message }
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => { toast.value.show = false }, 4000)
-}
 
 async function loadProducts() {
   const products = await get<any[]>('/products/')
@@ -62,17 +61,21 @@ function openEditOrder(order: any) {
 }
 
 async function deleteOrder(order: any) {
-  if (!confirm(`Excluir pedido de "${order.customer_name}"?`)) return
+  if (!confirm(t('page.vendas.confirm_delete', { customer: order.customer_name }))) return
   try {
     await store.deleteOrder(order.id)
-    showToast('Pedido excluído')
-  } catch {
-    showToast('Erro ao excluir pedido')
+    toast('success.order_deleted', 'success')
+  } catch (e) {
+    toastError(e)
   }
 }
 
 async function confirmPayment(orderId: number) {
-  await store.updatePayment(orderId, 'paid')
+  try {
+    await store.updatePayment(orderId, 'paid')
+  } catch (e) {
+    toastError(e)
+  }
 }
 
 function openNewProduct() {
@@ -93,6 +96,9 @@ function openEditProduct(productId: number) {
       unit: p.unit || 'un',
       is_active: p.is_active,
     }
+  }).catch((e) => {
+    toastError(e)
+    showProductForm.value = false
   })
 }
 
@@ -104,8 +110,8 @@ async function saveProduct() {
     await method(url, f)
     showProductForm.value = false
     await loadProducts()
-  } catch {
-    showToast('Erro ao salvar produto')
+  } catch (e) {
+    toastError(e)
   }
 }
 
@@ -119,11 +125,11 @@ const filteredOrders = computed(() => {
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Pedidos</h2>
+      <h2 class="text-xl font-semibold">{{ $t('page.vendas.title') }}</h2>
       <div class="flex gap-2 items-center">
-        <input v-model="search" placeholder="Buscar cliente..." class="border rounded px-3 py-1.5 text-sm" />
+        <input v-model="search" :placeholder="$t('page.vendas.search_placeholder')" class="border rounded px-3 py-1.5 text-sm" />
         <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded text-sm" @click="showForm = true">
-          Novo Pedido
+          {{ $t('page.vendas.new_order') }}
         </button>
       </div>
     </div>
@@ -143,66 +149,59 @@ const filteredOrders = computed(() => {
       :product-options="productOptions"
       :product-price-map="productPriceMap"
       @close="showEditForm = false"
-      @error="showToast"
     />
 
     <o-modal v-model:active="showProductForm" :width="450">
       <div class="rounded-lg overflow-hidden">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
-          <h3 class="text-lg font-bold">{{ editingProductId ? 'Editar' : 'Novo' }} Produto</h3>
+          <h3 class="text-lg font-bold">{{ editingProductId ? $t('page.vendas.edit_product') : $t('page.vendas.new_product') }}</h3>
           <button class="text-white/80 hover:text-white text-xl leading-none" @click="showProductForm = false">&times;</button>
         </div>
         <form @submit.prevent="saveProduct" class="p-6 space-y-4">
-          <o-field label="Nome">
+          <o-field :label="$t('page.vendas.name')">
             <o-input v-model="productForm.name" required />
           </o-field>
           <div class="flex gap-4">
-            <o-field label="Preço (R$)" class="flex-1">
+            <o-field :label="$t('page.vendas.price')" class="flex-1">
               <o-input v-model="productForm.price" type="number" step="0.1" min="0" required />
             </o-field>
-            <o-field label="Unidade" class="w-28">
+            <o-field :label="$t('page.vendas.unit')" class="w-28">
               <select v-model="productForm.unit" class="w-full border rounded px-3 py-2 text-sm bg-white">
-                <option value="un">un</option>
-                <option value="serving">porção</option>
-                <option value="kg">kg</option>
-                <option value="L">L</option>
+                <option value="un">{{ $t('unit.un') }}</option>
+                <option value="serving">{{ $t('unit.serving') }}</option>
+                <option value="kg">{{ $t('unit.kg') }}</option>
+                <option value="L">{{ $t('unit.L') }}</option>
               </select>
             </o-field>
           </div>
-          <o-field label="Categoria">
+          <o-field :label="$t('page.vendas.category')">
             <select v-model="productForm.category" class="w-full border rounded px-3 py-2 text-sm bg-white">
-              <option value="">Sem categoria</option>
-              <option value="marmita">Marmita</option>
-              <option value="acompanhamento">Acompanhamento</option>
-              <option value="suco">Suco</option>
-              <option value="brownie">Brownie</option>
-              <option value="caldo">Caldo</option>
+              <option value="">{{ $t('page.vendas.no_category') }}</option>
+              <option value="meal_box">{{ $t('page.vendas.meal_box') }}</option>
+              <option value="side_dish">{{ $t('page.vendas.side_dish') }}</option>
+              <option value="juice">{{ $t('page.vendas.juice') }}</option>
+              <option value="brownie">{{ $t('page.vendas.brownie') }}</option>
+              <option value="broth">{{ $t('page.vendas.broth') }}</option>
             </select>
           </o-field>
-          <o-field label="Descrição">
+          <o-field :label="$t('page.vendas.description')">
             <o-input v-model="productForm.description" type="textarea" />
           </o-field>
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" v-model="productForm.is_active" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
-            <span class="text-sm font-medium text-gray-700">Ativo</span>
+            <span class="text-sm font-medium text-gray-700">{{ $t('page.vendas.active') }}</span>
           </label>
           <div class="flex justify-end gap-3 pt-2 border-t">
             <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="showProductForm = false">
-              Cancelar
+              {{ $t('page.vendas.cancel') }}
             </button>
             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
-              Salvar
+              {{ $t('page.vendas.save') }}
             </button>
           </div>
         </form>
       </div>
     </o-modal>
-
-    <transition name="fade">
-      <div v-if="toast.show" class="fixed top-4 right-4 bg-green-600 text-white px-4 py-3 rounded shadow-lg z-50 text-sm">
-        {{ toast.message }}
-      </div>
-    </transition>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <OrderCard
@@ -218,14 +217,3 @@ const filteredOrders = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

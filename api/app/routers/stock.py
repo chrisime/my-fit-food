@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.core.deps import SessionUser, get_session, get_session_admin
+from app.core.exceptions import AppException, ErrorCode
 from app.models.stock import StockMovement
 from app.schemas.stock import BatchExpiresAtUpdate, StockMovementOut
 from app.services.stock import compute_stock_balance
@@ -38,7 +39,7 @@ def update_batch_expires_at(
         .all()
     )
     if not movements:
-        raise HTTPException(status_code=404, detail="No movements found")
+        raise AppException(404, ErrorCode.NOT_FOUND, "No movements found")
     for m in movements:
         m.expires_at = body.expires_at
     s.db.commit()

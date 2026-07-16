@@ -1,6 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import AppException, ErrorCode
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.services.crud import create_from_schema, get_or_404, update_from_schema
@@ -28,7 +28,8 @@ def delete_product(db: Session, product_id: int) -> None:
         db.commit()
     except Exception:
         db.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="Produto possui pedidos ou movimentações vinculadas. Desative-o em vez de excluir.",
+        raise AppException(
+            409,
+            ErrorCode.PRODUCT_HAS_LINKS,
+            "Product has linked orders or movements. Disable it instead of deleting.",
         )

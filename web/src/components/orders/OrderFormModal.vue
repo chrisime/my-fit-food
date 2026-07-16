@@ -103,87 +103,87 @@ async function submitOrder() {
   <o-modal :active="active" :width="700" :content-class="'w-full'" @update:active="(v: boolean) => !v && emit('close')">
     <div class="rounded-lg overflow-hidden">
       <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
-        <h3 class="text-lg font-bold">Novo Pedido</h3>
+        <h3 class="text-lg font-bold">{{ $t('order_form.title') }}</h3>
         <button class="text-white/80 hover:text-white text-xl leading-none" @click="emit('close')">&times;</button>
       </div>
       <form @submit.prevent="submitOrder" class="p-6 space-y-4">
-        <o-field label="Cliente existente">
+        <o-field :label="$t('order_form.existing_customer')">
           <div class="flex gap-1">
             <select v-model="selectedCustomerId" class="flex-1 border rounded px-3 py-2 text-sm bg-white" @change="selectCustomer">
-              <option :value="0">Selecione um cliente...</option>
+              <option :value="0">{{ $t('order_form.select_customer') }}</option>
               <option v-for="c in customerOptions" :key="c.value" :value="c.value">{{ c.label }}</option>
             </select>
-            <button type="button" title="Cadastrar novo cliente" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="$router.push('/customers')">+</button>
+            <button type="button" :title="$t('order_form.new_customer_title')" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="$router.push('/customers')">+</button>
           </div>
         </o-field>
         <div class="grid grid-cols-2 gap-4">
-          <o-field label="Cliente">
+          <o-field :label="$t('order_form.customer_name')">
             <o-input v-model="customerName" required />
           </o-field>
-          <o-field label="WhatsApp">
-            <o-input v-model="customerPhone" placeholder="(11) 99999-9999" />
+          <o-field :label="$t('order_form.whatsapp')">
+            <o-input v-model="customerPhone" :placeholder="$t('order_form.phone_placeholder')" />
           </o-field>
         </div>
         <div class="border rounded-lg p-3 bg-gray-50 space-y-3">
-          <p class="text-sm font-semibold text-gray-600">Endereço de Entrega</p>
+          <p class="text-sm font-semibold text-gray-600">{{ $t('order_form.delivery_address') }}</p>
           <div v-if="customerData?.address2_street" class="flex gap-4 mb-3">
             <label class="flex items-center gap-1.5 text-sm cursor-pointer">
               <input type="radio" name="address" value="1" :checked="selectedAddress === '1'" @change="applyAddress('1')" class="text-green-600" />
-              Endereço 1
+              {{ $t('order_form.address_1') }}
             </label>
             <label class="flex items-center gap-1.5 text-sm cursor-pointer">
               <input type="radio" name="address" value="2" :checked="selectedAddress === '2'" @change="applyAddress('2')" class="text-green-600" />
-              Endereço 2
+              {{ $t('order_form.address_2') }}
             </label>
           </div>
-          <o-field label="Rua, Número">
-            <o-input v-model="addressStreet" placeholder="Av. Paulista, 1000" />
+          <o-field :label="$t('order_form.street')">
+            <o-input v-model="addressStreet" :placeholder="$t('order_form.street_placeholder')" />
           </o-field>
           <div class="grid grid-cols-2 gap-4">
-            <o-field label="Bairro">
-              <o-input v-model="addressNeighborhood" placeholder="Bela Vista" />
+            <o-field :label="$t('order_form.neighborhood')">
+              <o-input v-model="addressNeighborhood" :placeholder="$t('order_form.n_placeholder')" />
             </o-field>
-            <o-field label="Cidade">
-              <o-input v-model="addressCity" placeholder="São Paulo" />
+            <o-field :label="$t('order_form.city')">
+              <o-input v-model="addressCity" :placeholder="$t('order_form.city_placeholder')" />
             </o-field>
           </div>
         </div>
-        <o-field label="Observações">
+        <o-field :label="$t('order_form.notes')">
           <o-input v-model="notes" type="textarea" />
         </o-field>
         <div class="border rounded-lg p-4 bg-gray-50 space-y-3">
-          <p class="text-sm font-semibold text-gray-600">Itens do Pedido</p>
+          <p class="text-sm font-semibold text-gray-600">{{ $t('order_form.items') }}</p>
           <div v-for="(item, i) in items" :key="i" class="flex gap-3 items-end">
-            <o-field label="Produto" class="flex-1">
+            <o-field :label="$t('order_form.product')" class="flex-1">
               <div class="flex gap-1">
                 <select v-model="item.product_id" class="flex-1 border rounded px-3 py-2 text-sm bg-white">
-                  <option :value="0" disabled>Selecione</option>
+                  <option :value="0" disabled>{{ $t('order_form.select') }}</option>
                   <option v-for="p in productOptions" :key="p.value" :value="p.value">
                     {{ p.label }}
                   </option>
                 </select>
-                <button type="button" title="Novo produto" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="emit('new-product')">+</button>
+                <button type="button" :title="$t('order_form.new_product_title')" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="emit('new-product')">+</button>
               </div>
             </o-field>
-            <o-field label="Qtd" class="w-24">
+            <o-field :label="$t('order_form.qty')" class="w-24">
               <o-input v-model="item.quantity" type="number" min="1" />
             </o-field>
             <label class="flex items-center gap-1 text-xs whitespace-nowrap mb-1" style="padding-bottom:2px">
               <input type="checkbox" v-model="item.is_free" class="w-3.5 h-3.5 rounded border-gray-300 text-green-600" />
-              Grátis
+              {{ $t('order_form.free') }}
             </label>
           </div>
-          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="addItem">+ Adicionar item</button>
+          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="addItem">{{ $t('order_form.add_item') }}</button>
         </div>
         <div class="text-right text-lg font-bold text-green-700">
-          Total: R$ {{ totalAmount.toFixed(2) }}
+          {{ $t('order_form.total') }} R$ {{ totalAmount.toFixed(2) }}
         </div>
         <div class="flex justify-end gap-3 pt-2 border-t">
           <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="emit('close')">
-            Cancelar
+            {{ $t('order_form.cancel') }}
           </button>
           <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
-            Salvar Pedido
+            {{ $t('order_form.save') }}
           </button>
         </div>
       </form>

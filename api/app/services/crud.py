@@ -1,14 +1,15 @@
 from collections.abc import Callable
 
-from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from app.core.exceptions import AppException, ErrorCode
 
 
 def get_or_404(db: Session, model, id: int, detail: str = "Not found"):
     obj = db.query(model).filter(model.id == id).first()
     if not obj:
-        raise HTTPException(status_code=404, detail=detail)
+        raise AppException(status_code=404, code=ErrorCode.NOT_FOUND, detail=detail)
     return obj
 
 

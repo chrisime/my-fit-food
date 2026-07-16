@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 
-from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import AppException, ErrorCode
 from app.models.product import Product
 from app.models.production import Production
 from app.models.stock import StockMovement
@@ -16,11 +16,11 @@ def _utc(dt: datetime) -> datetime:
 def create_production(db: Session, user_id: int, body) -> Production | StockMovement:
     product = db.query(Product).filter(Product.id == body.product_id).first()
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise AppException(404, ErrorCode.STOCK_PRODUCT_NOT_FOUND, "Product not found")
 
     if body.type == "in":
         if not body.expires_at:
-            raise HTTPException(status_code=400, detail="Validade é obrigatória para entrada")
+            raise AppException(400, ErrorCode.STOCK_EXPIRY_REQUIRED, "Expiry date is required for incoming movement")
         expires_at = datetime.fromisoformat(body.expires_at).replace(tzinfo=timezone.utc)
     else:
         expires_at = None

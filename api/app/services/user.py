@@ -1,6 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import AppException, ErrorCode
 from app.core.security import hash_password
 from app.models.user import User
 from app.schemas.user import UserCreate
@@ -13,7 +13,7 @@ def list_users(db: Session) -> list[User]:
 def create_user(db: Session, body: UserCreate) -> User:
     existing = db.query(User).filter(User.username == body.username).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Username already taken")
+        raise AppException(400, ErrorCode.USERNAME_DUPLICATE, "Username already taken")
     user = User(
         username=body.username,
         hashed_password=hash_password(body.password),
@@ -29,7 +29,7 @@ def create_user(db: Session, body: UserCreate) -> User:
 def update_user(db: Session, user_id: int, body: UserCreate) -> User:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise AppException(404, ErrorCode.USER_NOT_FOUND, "User not found")
     user.username = body.username
     user.full_name = body.full_name
     user.role = body.role
@@ -42,9 +42,9 @@ def update_user(db: Session, user_id: int, body: UserCreate) -> User:
 
 def delete_user(db: Session, user_id: int, current_user_id: int) -> None:
     if current_user_id == user_id:
-        raise HTTPException(status_code=400, detail="Não pode excluir a si mesmo")
+        raise AppException(400, ErrorCode.USER_SELF_DELETE, "Cannot delete yourself")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise AppException(404, ErrorCode.USER_NOT_FOUND, "User not found")
     db.delete(user)
     db.commit()

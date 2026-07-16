@@ -1,6 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import AppException, ErrorCode
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.schemas.order import OrderCreate, OrderUpdate
@@ -56,7 +56,7 @@ def create_order(db: Session, body: OrderCreate, user_id: int) -> Order:
 def update_order(db: Session, order_id: int, body: OrderUpdate) -> Order:
     order = get_or_404(db, Order, order_id, "Order not found")
     if order.payment_status != "pending":
-        raise HTTPException(status_code=400, detail="Só é possível editar pedidos pendentes")
+        raise AppException(400, ErrorCode.ORDER_NOT_PENDING, "Only pending orders can be edited")
     order.notes = body.notes
     order.items.clear()
     db.flush()
@@ -69,7 +69,7 @@ def update_order(db: Session, order_id: int, body: OrderUpdate) -> Order:
 def delete_order(db: Session, order_id: int) -> None:
     order = get_or_404(db, Order, order_id, "Order not found")
     if order.payment_status != "pending":
-        raise HTTPException(status_code=400, detail="Só é possível excluir pedidos pendentes")
+        raise AppException(400, ErrorCode.ORDER_CANNOT_DELETE, "Only pending orders can be deleted")
     db.delete(order)
     db.commit()
 
@@ -85,7 +85,7 @@ def update_payment(db: Session, order_id: int, payment_status: str) -> Order:
 def reverse_payment(db: Session, order_id: int) -> Order:
     order = get_or_404(db, Order, order_id, "Order not found")
     if order.status == "delivered":
-        raise HTTPException(status_code=400, detail="Não é possível reverter pagamento de um pedido já entregue")
+        raise AppException(400, ErrorCode.ORDER_PAYMENT_REVERT, "Cannot reverse payment for a delivered order")
     order.payment_status = "pending"
     db.commit()
     db.refresh(order)

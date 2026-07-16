@@ -41,38 +41,38 @@ function total(order: Order) {
           class="text-xs font-bold px-2 py-1 rounded"
           :class="order.payment_status === 'paid' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'"
         >
-          {{ order.payment_status === 'paid' ? 'PAGO' : 'PENDENTE' }}
+          {{ order.payment_status === 'paid' ? $t('order_card.paid') : $t('order_card.pending') }}
         </span>
         <span v-if="order.status === 'delivered'" class="text-xs font-bold px-2 py-1 rounded bg-blue-200 text-blue-800">
-          ENTREGUE
+          {{ $t('order_card.delivered') }}
         </span>
       </div>
     </div>
     <div class="mt-2 text-sm flex-1">
       <div v-for="item in order.items" :key="item.id" class="flex justify-between">
         <span>
-          {{ item.quantity }}x {{ item.product_name || 'Produto #' + item.product_id }}
-          <span v-if="item.is_free" class="text-green-600 text-xs font-semibold">(gratis)</span>
+          {{ item.quantity }}x {{ item.product_name || $t('order_card.product_fallback') + item.product_id }}
+          <span v-if="item.is_free" class="text-green-600 text-xs font-semibold">({{ $t('order_card.free_badge') }})</span>
         </span>
         <span v-if="!item.is_free">R$ {{ (item.quantity * item.unit_price).toFixed(2) }}</span>
-        <span v-else class="text-green-600 font-semibold">GRÁTIS</span>
+        <span v-else class="text-green-600 font-semibold">{{ $t('order_card.free_price') }}</span>
       </div>
       <div class="flex justify-between font-bold text-green-700 mt-2 pt-2 border-t border-gray-300">
-        <span>Total</span>
+        <span>{{ $t('order_card.total') }}</span>
         <span>R$ {{ total(order) }}</span>
       </div>
     </div>
     <p v-if="order.notes" class="mt-2 text-xs text-gray-500 italic">{{ order.notes }}</p>
     <div class="mt-auto pt-3 space-y-2">
       <div v-if="order.payment_status === 'pending'" class="flex gap-2">
-        <button @click="emit('edit', order)" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded" title="Editar">
+        <button @click="emit('edit', order)" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded" :title="$t('order_card.edit_title')">
           <i class="mdi mdi-pencil"></i>
         </button>
-        <button @click="emit('delete', order)" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded" title="Excluir">
+        <button @click="emit('delete', order)" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded" :title="$t('order_card.delete_title')">
           <i class="mdi mdi-delete"></i>
         </button>
         <button @click="emit('confirm-payment', order.id)" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-3 rounded">
-          Confirmar Pagamento
+          {{ $t('order_card.confirm_payment') }}
         </button>
       </div>
       <button
@@ -80,7 +80,7 @@ function total(order: Order) {
         @click="emit('reverse-payment', order.id)"
         class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-3 rounded"
       >
-        Reverter Pagamento
+        {{ $t('order_card.revert_payment') }}
       </button>
     </div>
   </div>

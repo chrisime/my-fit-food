@@ -8,11 +8,11 @@ class UserRole(StrEnum):
 
 
 class ProductCategory(StrEnum):
-    MARMITA = "marmita"
-    ACOMPANHAMENTO = "acompanhamento"
-    SUCO = "suco"
+    MEAL_BOX = "meal_box"
+    SIDE_DISH = "side_dish"
+    JUICE = "juice"
     BROWNIE = "brownie"
-    CALDO = "caldo"
+    BROTH = "broth"
 
 
 class UnitType(StrEnum):

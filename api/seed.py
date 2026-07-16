@@ -39,14 +39,14 @@ def seed():
 
     if not db.query(Product).first():
         db.add_all([
-            Product(name="Frango Grelhado", price=22.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
-            Product(name="Carne Moída", price=24.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
-            Product(name="Strogonoff de Frango", price=26.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
-            Product(name="Peixe ao Molho", price=28.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
-            Product(name="Arroz Branco", price=8.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
-            Product(name="Feijão Preto", price=6.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
-            Product(name="Batata Doce", price=7.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
-            Product(name="Salada Verde", price=5.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
+            Product(name="Frango Grelhado", price=22.90, category=ProductCategory.MEAL_BOX, unit=UnitType.UN),
+            Product(name="Carne Moída", price=24.90, category=ProductCategory.MEAL_BOX, unit=UnitType.UN),
+            Product(name="Strogonoff de Frango", price=26.90, category=ProductCategory.MEAL_BOX, unit=UnitType.UN),
+            Product(name="Peixe ao Molho", price=28.90, category=ProductCategory.MEAL_BOX, unit=UnitType.UN),
+            Product(name="Arroz Branco", price=8.90, category=ProductCategory.SIDE_DISH, unit=UnitType.SERVING),
+            Product(name="Feijão Preto", price=6.90, category=ProductCategory.SIDE_DISH, unit=UnitType.SERVING),
+            Product(name="Batata Doce", price=7.90, category=ProductCategory.SIDE_DISH, unit=UnitType.SERVING),
+            Product(name="Salada Verde", price=5.90, category=ProductCategory.SIDE_DISH, unit=UnitType.SERVING),
         ])
 
     if not db.query(Customer).first():

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.core.deps import SessionUser, get_session, get_session_admin
+from app.core.exceptions import AppException, ErrorCode
 from app.models.order import Order
 from app.schemas.order import OrderCreate, OrderOut, OrderUpdate, PaymentUpdate
 from app.services.order import (
@@ -56,9 +57,9 @@ def reverse_payment_endpoint(order_id: int, s: SessionUser = Depends(get_session
 def rev_delivery(order_id: int, s: SessionUser = Depends(get_session_admin)):
     order = s.db.query(Order).filter(Order.id == order_id).first()
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise AppException(404, ErrorCode.NOT_FOUND, "Order not found")
     if order.status != "delivered":
-        raise HTTPException(status_code=400, detail="Order is not delivered")
+        raise AppException(400, ErrorCode.ORDER_NOT_DELIVERED, "Order is not delivered")
     stock_reverse(s.db, order)
     s.db.commit()
     s.db.refresh(order)
@@ -70,9 +71,9 @@ def rev_delivery(order_id: int, s: SessionUser = Depends(get_session_admin)):
 def deliver(order_id: int, s: SessionUser = Depends(get_session_admin)):
     order = s.db.query(Order).filter(Order.id == order_id).first()
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise AppException(404, ErrorCode.NOT_FOUND, "Order not found")
     if order.status == "delivered":
-        raise HTTPException(status_code=400, detail="Order already delivered")
+        raise AppException(400, ErrorCode.ORDER_ALREADY_DELIVERED, "Order already delivered")
     stock_deliver(s.db, s.user.id, order)
     s.db.commit()
     s.db.refresh(order)

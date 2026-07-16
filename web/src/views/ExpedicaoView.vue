@@ -2,7 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import { get } from '@/composables/api'
+
+const { toastError } = useToast()
 
 const store = useOrderStore()
 const auth = useAuthStore()
@@ -15,7 +18,11 @@ const historyOrders = computed(() =>
 )
 
 async function fetchBalance() {
-  stockBalance.value = await get('/stock/balance')
+  try {
+    stockBalance.value = await get('/stock/balance')
+  } catch (e) {
+    toastError(e)
+  }
 }
 
 function stockFor(productId: number): number {
@@ -28,7 +35,11 @@ function orderHasMissingStock(order: any): boolean {
 }
 
 onMounted(async () => {
-  await Promise.all([store.fetchOrders(), fetchBalance()])
+  try {
+    await Promise.all([store.fetchOrders(), fetchBalance()])
+  } catch (e) {
+    toastError(e)
+  }
 })
 
 function formatDate(dt: string) {
@@ -36,21 +47,29 @@ function formatDate(dt: string) {
 }
 
 async function deliverAndRefresh(orderId: number) {
-  await store.deliverOrder(orderId)
-  await fetchBalance()
+  try {
+    await store.deliverOrder(orderId)
+    await fetchBalance()
+  } catch (e) {
+    toastError(e)
+  }
 }
 
 async function reverseAndRefresh(orderId: number) {
-  await store.reverseDelivery(orderId)
-  await fetchBalance()
+  try {
+    await store.reverseDelivery(orderId)
+    await fetchBalance()
+  } catch (e) {
+    toastError(e)
+  }
 }
 </script>
 
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Expedição — Conferência Final</h2>
-      <router-link to="/stock" class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded">Ver Estoque</router-link>
+      <h2 class="text-xl font-semibold">{{ $t('page.dispatch.title') }}</h2>
+      <router-link to="/stock" class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded">{{ $t('page.dispatch.view_stock') }}</router-link>
     </div>
 
 
@@ -70,17 +89,17 @@ async function reverseAndRefresh(orderId: number) {
             </p>
             <p class="text-xs text-gray-400">{{ formatDate(order.created_at) }}</p>
           </div>
-          <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-1 rounded">PAGO</span>
+          <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-1 rounded">{{ $t('page.dispatch.paid') }}</span>
         </div>
 
         <div class="mt-3 text-sm space-y-1 flex-1">
           <div v-for="item in order.items" :key="item.id" class="flex justify-between items-center">
-            <span>{{ item.quantity }}x {{ item.product_name || 'Produto #' + item.product_id }}</span>
+            <span>{{ item.quantity }}x {{ item.product_name || $t('page.dispatch.product_fallback') + item.product_id }}</span>
             <span
               v-if="stockFor(item.product_id) < item.quantity"
               class="text-xs px-2 py-0.5 rounded font-semibold bg-red-100 text-red-700"
             >
-              falta {{ item.quantity - stockFor(item.product_id) }}
+              {{ $t('page.dispatch.missing', { qty: item.quantity - stockFor(item.product_id) }) }}
             </span>
           </div>
         </div>
@@ -91,19 +110,19 @@ async function reverseAndRefresh(orderId: number) {
             class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2 px-3 rounded"
             @click="deliverAndRefresh(order.id)"
           >
-            Confirmar e Entregar
+            {{ $t('page.dispatch.confirm_deliver') }}
           </button>
-          <p v-else class="text-red-600 text-sm font-semibold text-center">Estoque insuficiente</p>
+          <p v-else class="text-red-600 text-sm font-semibold text-center">{{ $t('page.dispatch.insufficient_stock') }}</p>
         </div>
       </div>
     </div>
 
     <div v-if="paidOrders.length === 0" class="text-gray-400 text-center py-8">
-      Nenhum pedido aguardando expedição
+      {{ $t('page.dispatch.no_orders') }}
     </div>
 
     <div v-if="historyOrders.length" class="mt-10">
-      <h3 class="font-semibold text-gray-500 mb-2">Entregues Hoje</h3>
+      <h3 class="font-semibold text-gray-500 mb-2">{{ $t('page.dispatch.delivered_today') }}</h3>
       <div class="space-y-2">
         <div v-for="order in historyOrders" :key="order.id"
           class="bg-gray-100 rounded p-3 text-sm flex justify-between items-center">
@@ -115,7 +134,7 @@ async function reverseAndRefresh(orderId: number) {
               @click="reverseAndRefresh(order.id)"
               class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded"
             >
-              Reverter
+              {{ $t('page.dispatch.revert') }}
             </button>
           </div>
         </div>

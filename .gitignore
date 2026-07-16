@@ -10,3 +10,4 @@ __pycache__
 api/.venv
 docker-data/
 docs/oracle-cloud-deployment.md
+.DS_Store

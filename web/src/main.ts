@@ -5,6 +5,7 @@ import '@mdi/font/css/materialdesignicons.min.css'
 
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 import './style.css'
 
 const orugaConfig = {
@@ -74,4 +75,5 @@ app.use(createPinia())
 app.use(router)
 Oruga.use(...OrugaComponentPlugins)
 app.use(Oruga, orugaConfig)
+app.use(i18n)
 app.mount('#app')

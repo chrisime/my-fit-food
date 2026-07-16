@@ -1,10 +1,11 @@
 from typing import NamedTuple
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.exceptions import AppException, ErrorCode
 from app.core.security import decode_access_token
 from app.models.user import User
 
@@ -17,15 +18,13 @@ def get_current_user(
 ) -> User:
     payload = decode_access_token(credentials.credentials)
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+        raise AppException(
+            401, ErrorCode.TOKEN_EXPIRED, "Invalid token",
         )
     user = db.query(User).filter(User.id == int(payload.get("sub"))).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+        raise AppException(
+            401, ErrorCode.INVALID_CREDENTIALS, "User not found",
         )
     return user
 
@@ -33,9 +32,8 @@ def get_current_user(
 def require_role(role: str):
     def checker(user: User = Depends(get_current_user)) -> User:
         if user.role != role and user.role != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role '{role}' required",
+            raise AppException(
+                403, ErrorCode.FORBIDDEN, f"Role '{role}' required",
             )
         return user
     return checker
