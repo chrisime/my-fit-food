@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { get, post, patch } from '@/composables/api'
-import { unitLabel } from '@/composables/labels'
+import { unitLabel, formatQty } from '@/composables/labels'
 
 const role = ref(localStorage.getItem('role') || '')
 const isAdmin = computed(() => role.value === 'admin')
@@ -195,16 +195,16 @@ async function submitMovement() {
                   </span>
                   {{ item.product_name }}
                 </td>
-                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ item.balance }} {{ unitLabel(item.unit) }}</td>
+                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ formatQty(item.balance, item.unit) }} {{ unitLabel(item.unit) }}</td>
                 <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ unitLabel(item.unit) }}</td>
-                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ (item.balance - (neededByOrders[item.product_id] || 0)).toFixed(0) }} {{ unitLabel(item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ formatQty(item.balance - (neededByOrders[item.product_id] || 0), item.unit) }} {{ unitLabel(item.unit) }}</td>
                 <td v-if="isAdmin || isKitchen" class="py-2"></td>
                 <td v-if="isAdmin" class="py-2"></td>
               </tr>
               <template v-if="expanded.has(item.product_id)">
                 <tr v-for="batch in item.batches" :key="batch.date" class="border-b hover:bg-gray-50 text-sm">
-                  <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.created_at) }} → {{ fmtDate(batch.date) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
-                  <td class="py-1 text-right font-mono">{{ batch.quantity }} {{ unitLabel(item.unit) }}</td>
+                  <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.created_at) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
+                  <td class="py-1 text-right font-mono">{{ formatQty(batch.quantity, item.unit) }} {{ unitLabel(item.unit) }}</td>
                   <td v-if="isAdmin || isKitchen" colspan="2"></td>
                   <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
                   <td v-if="isAdmin" class="py-1 text-center">

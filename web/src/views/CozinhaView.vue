@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { get } from '@/composables/api'
+import { formatQty } from '@/composables/labels'
 
 const store = useOrderStore()
 const { on, off } = useWebSocket()
@@ -90,10 +91,10 @@ function needsProduction(productId: number, qty: number): boolean {
                 :class="needsProduction(item.product_id, item.quantity) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
               >
                 <template v-if="needsProduction(item.product_id, item.quantity)">
-                  produzir (estoque: {{ stockFor(item.product_id).balance }})
+                  produzir (estoque: {{ formatQty(stockFor(item.product_id).balance, stockFor(item.product_id).unit) }})
                 </template>
                 <template v-else>
-                  em estoque ({{ stockFor(item.product_id).balance }})
+                  em estoque ({{ formatQty(stockFor(item.product_id).balance, stockFor(item.product_id).unit) }})
                 </template>
               </span>
             </div>
