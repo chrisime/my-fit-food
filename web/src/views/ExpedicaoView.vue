@@ -50,7 +50,7 @@ async function reverseAndRefresh(orderId: number) {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Expedição — Conferência Final</h2>
-      <router-link to="/estoque" class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded">Ver Estoque</router-link>
+      <router-link to="/stock" class="text-sm bg-gray-200 hover:bg-gray-300 font-semibold py-1.5 px-3 rounded">Ver Estoque</router-link>
     </div>
 
 

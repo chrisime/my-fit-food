@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { get } from '@/composables/api'
+import { unitLabel } from '@/composables/labels'
 
 const stats = ref({
   orders_today: 0,
@@ -69,7 +70,7 @@ onMounted(async () => {
             class="flex justify-between items-center p-3 border-b last:border-0 text-sm"
           >
             <span>{{ s.name }}</span>
-            <span class="font-mono text-red-600 font-semibold">{{ s.balance }} {{ s.unit }}</span>
+            <span class="font-mono text-red-600 font-semibold">{{ s.balance }} {{ unitLabel(s.unit) }}</span>
           </div>
           <p v-if="!stats.low_stock.length" class="p-3 text-green-600 text-sm">Todos os produtos com estoque suficiente</p>
         </div>

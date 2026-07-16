@@ -163,7 +163,7 @@ const filteredOrders = computed(() => {
             <o-field label="Unidade" class="w-28">
               <select v-model="productForm.unit" class="w-full border rounded px-3 py-2 text-sm bg-white">
                 <option value="un">un</option>
-                <option value="porção">porção</option>
+                <option value="serving">porção</option>
                 <option value="kg">kg</option>
                 <option value="L">L</option>
               </select>

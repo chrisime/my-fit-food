@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { get, post, put, del } from '@/composables/api'
+import { unitLabel } from '@/composables/labels'
 
 interface Product {
   id: number
@@ -106,7 +107,7 @@ async function toggleActive(p: Product) {
             <td class="p-3 font-medium">{{ p.name }}</td>
             <td class="p-3 text-gray-500">{{ p.category || '-' }}</td>
             <td class="p-3 text-right font-mono">R$ {{ p.price.toFixed(2) }}</td>
-            <td class="p-3 text-center">{{ p.unit }}</td>
+            <td class="p-3 text-center">{{ unitLabel(p.unit) }}</td>
             <td class="p-3 text-center">
               <button
                 class="text-xs font-semibold px-2 py-1 rounded"
@@ -152,7 +153,7 @@ async function toggleActive(p: Product) {
             <o-field label="Unidade" class="w-28">
               <select v-model="form.unit" class="w-full border rounded px-3 py-2 text-sm bg-white">
                 <option value="un">un</option>
-                <option value="porção">porção</option>
+                <option value="serving">porção</option>
                 <option value="kg">kg</option>
                 <option value="L">L</option>
               </select>

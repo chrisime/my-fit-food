@@ -53,7 +53,7 @@ function needsProduction(productId: number, qty: number): boolean {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Cozinha</h2>
-      <router-link to="/estoque" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-3 rounded text-sm">Estoque</router-link>
+      <router-link to="/stock" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-3 rounded text-sm">Estoque</router-link>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

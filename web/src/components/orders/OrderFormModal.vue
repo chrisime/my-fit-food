@@ -113,7 +113,7 @@ async function submitOrder() {
               <option :value="0">Selecione um cliente...</option>
               <option v-for="c in customerOptions" :key="c.value" :value="c.value">{{ c.label }}</option>
             </select>
-            <button type="button" title="Cadastrar novo cliente" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="$router.push('/clientes')">+</button>
+            <button type="button" title="Cadastrar novo cliente" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="$router.push('/customers')">+</button>
           </div>
         </o-field>
         <div class="grid grid-cols-2 gap-4">

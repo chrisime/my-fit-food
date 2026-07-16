@@ -20,18 +20,18 @@ onMounted(() => {
         <div class="font-bold text-lg">My Fit Food</div>
         <router-link to="/" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium text-sm">Dashboard</router-link>
         <div class="flex items-center gap-1 text-sm">
-          <router-link to="/vendas" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'vendas' || auth.user?.role === 'admin'">Vendas</router-link>
-          <span v-if="auth.user?.role === 'vendas' || auth.user?.role === 'admin'" class="text-green-300">|</span>
-          <router-link to="/clientes" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'vendas' || auth.user?.role === 'admin'">Clientes</router-link>
-          <span v-if="auth.user?.role === 'vendas' || auth.user?.role === 'admin'" class="text-green-300">|</span>
-          <router-link to="/produtos" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'admin' || auth.user?.role === 'vendas'">Produtos</router-link>
+          <router-link to="/sales" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'sales' || auth.user?.role === 'admin'">Vendas</router-link>
+          <span v-if="auth.user?.role === 'sales' || auth.user?.role === 'admin'" class="text-green-300">|</span>
+          <router-link to="/customers" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'sales' || auth.user?.role === 'admin'">Clientes</router-link>
+          <span v-if="auth.user?.role === 'sales' || auth.user?.role === 'admin'" class="text-green-300">|</span>
+          <router-link to="/products" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'admin' || auth.user?.role === 'sales'">Produtos</router-link>
         </div>
         <div class="flex items-center gap-1 text-sm">
-          <router-link to="/cozinha" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'cozinha' || auth.user?.role === 'admin'">Cozinha</router-link>
-          <span v-if="auth.user?.role === 'cozinha' || auth.user?.role === 'admin'" class="text-green-300">|</span>
-          <router-link to="/estoque" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium">Estoque</router-link>
+          <router-link to="/kitchen" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium" v-if="auth.user?.role === 'kitchen' || auth.user?.role === 'admin'">Cozinha</router-link>
+          <span v-if="auth.user?.role === 'kitchen' || auth.user?.role === 'admin'" class="text-green-300">|</span>
+          <router-link to="/stock" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium">Estoque</router-link>
         </div>
-        <router-link to="/expedicao" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium text-sm" v-if="auth.user?.role === 'admin'">Expedição</router-link>
+        <router-link to="/dispatch" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium text-sm" v-if="auth.user?.role === 'admin'">Expedição</router-link>
       </div>
 
       <div class="text-sm text-center">
@@ -39,7 +39,7 @@ onMounted(() => {
       </div>
 
       <div class="flex-1 flex items-center justify-end gap-4">
-        <router-link to="/usuarios" class="hover:text-green-200" title="Usuários" v-if="auth.user?.role === 'admin'"><i class="mdi mdi-account-cog text-xl"></i></router-link>
+        <router-link to="/users" class="hover:text-green-200" title="Usuários" v-if="auth.user?.role === 'admin'"><i class="mdi mdi-account-cog text-xl"></i></router-link>
         <button class="hover:text-green-200" title="Sair" @click="auth.logout()"><i class="mdi mdi-logout-variant text-xl"></i></button>
       </div>
     </nav>

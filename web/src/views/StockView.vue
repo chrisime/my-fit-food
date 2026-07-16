@@ -3,11 +3,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { get, post, patch } from '@/composables/api'
+import { unitLabel } from '@/composables/labels'
 
 const role = ref(localStorage.getItem('role') || '')
 const isAdmin = computed(() => role.value === 'admin')
-const isCozinha = computed(() => role.value === 'cozinha')
-const canWrite = computed(() => isAdmin.value || isCozinha.value)
+const isKitchen = computed(() => role.value === 'kitchen')
+const canWrite = computed(() => isAdmin.value || isKitchen.value)
 
 const store = useOrderStore()
 
@@ -100,7 +101,7 @@ function weeksUntil(iso: string | null): number {
   return diff / (1000 * 60 * 60 * 24 * 7)
 }
 
-function validadeClass(iso: string | null): string {
+function expiryClass(iso: string | null): string {
   const w = weeksUntil(iso)
   if (w <= 0) return 'text-red-600 font-bold'
   if (w < 4) return 'text-red-600'
@@ -179,9 +180,9 @@ async function submitMovement() {
             <tr class="border-b text-left">
               <th class="py-2">Produto</th>
               <th class="py-2 text-right">Qtd</th>
-              <th v-if="isAdmin || isCozinha" class="py-2 text-right">Necessário</th>
-              <th v-if="isAdmin || isCozinha" class="py-2 text-right">Diferença</th>
-              <th v-if="isAdmin || isCozinha" class="py-2 text-right">Validade</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Necessário</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Diferença</th>
+              <th v-if="isAdmin || isKitchen" class="py-2 text-right">Validade</th>
               <th v-if="isAdmin" class="py-2 text-center w-10"></th>
             </tr>
           </thead>
@@ -194,18 +195,18 @@ async function submitMovement() {
                   </span>
                   {{ item.product_name }}
                 </td>
-                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ item.balance }} {{ item.unit }}</td>
-                <td v-if="isAdmin || isCozinha" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ item.unit }}</td>
-                <td v-if="isAdmin || isCozinha" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ (item.balance - (neededByOrders[item.product_id] || 0)).toFixed(0) }} {{ item.unit }}</td>
-                <td v-if="isAdmin || isCozinha" class="py-2"></td>
+                <td class="py-2 text-right font-mono" :class="item.balance < 0 ? 'text-red-600' : 'text-green-700'">{{ item.balance }} {{ unitLabel(item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ unitLabel(item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ (item.balance - (neededByOrders[item.product_id] || 0)).toFixed(0) }} {{ unitLabel(item.unit) }}</td>
+                <td v-if="isAdmin || isKitchen" class="py-2"></td>
                 <td v-if="isAdmin" class="py-2"></td>
               </tr>
               <template v-if="expanded.has(item.product_id)">
                 <tr v-for="batch in item.batches" :key="batch.date" class="border-b hover:bg-gray-50 text-sm">
                   <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.date) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
-                  <td class="py-1 text-right font-mono">{{ batch.quantity }} {{ item.unit }}</td>
-                  <td v-if="isAdmin || isCozinha" colspan="2"></td>
-                  <td v-if="isAdmin || isCozinha" class="py-1 text-right font-mono text-xs" :class="validadeClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
+                  <td class="py-1 text-right font-mono">{{ batch.quantity }} {{ unitLabel(item.unit) }}</td>
+                  <td v-if="isAdmin || isKitchen" colspan="2"></td>
+                  <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
                   <td v-if="isAdmin" class="py-1 text-center">
                     <button @click="startEdit(batch)" class="text-gray-400 hover:text-blue-600" title="Editar validade"><i class="mdi mdi-pencil"></i></button>
                   </td>

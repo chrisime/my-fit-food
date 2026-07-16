@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { get, post, put, del } from '@/composables/api'
+import { roleLabel } from '@/composables/labels'
 
 interface User {
   id: number
@@ -14,7 +15,7 @@ const users = ref<User[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
 const editingUser = ref<User | null>(null)
-const form = ref({ username: '', password: '', full_name: '', role: 'vendas' })
+const form = ref({ username: '', password: '', full_name: '', role: 'sales' })
 
 onMounted(loadUsers)
 
@@ -25,7 +26,7 @@ async function loadUsers() {
 function openNew() {
   isEditing.value = false
   editingUser.value = null
-  form.value = { username: '', password: '', full_name: '', role: 'vendas' }
+  form.value = { username: '', password: '', full_name: '', role: 'sales' }
   showModal.value = true
 }
 
@@ -56,7 +57,7 @@ async function saveUser() {
     await post('/auth/users', body)
   }
   showModal.value = false
-  form.value = { username: '', password: '', full_name: '', role: 'vendas' }
+  form.value = { username: '', password: '', full_name: '', role: 'sales' }
   await loadUsers()
 }
 </script>
@@ -87,9 +88,9 @@ async function saveUser() {
             <td class="p-3 text-gray-500">{{ u.username }}</td>
             <td class="p-3 text-center">
               <span class="text-xs font-semibold px-2 py-0.5 rounded"
-                :class="u.role === 'admin' ? 'bg-purple-100 text-purple-700' : u.role === 'cozinha' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'"
+                :class="u.role === 'admin' ? 'bg-purple-100 text-purple-700' : u.role === 'kitchen' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'"
               >
-                {{ u.role }}
+                {{ roleLabel(u.role) }}
               </span>
             </td>
             <td class="p-3 text-center">
@@ -125,8 +126,8 @@ async function saveUser() {
           </o-field>
           <o-field label="Papel">
             <select v-model="form.role" class="w-full border rounded px-3 py-2 text-sm bg-white">
-              <option value="vendas">Vendas</option>
-              <option value="cozinha">Cozinha</option>
+              <option value="sales">Vendas</option>
+              <option value="kitchen">Cozinha</option>
               <option value="admin">Admin</option>
             </select>
           </o-field>
