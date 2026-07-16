@@ -15,7 +15,7 @@ class UserCreate(BaseModel):
     username: str
     password: str
     full_name: str
-    role: str = "vendas"
+    role: str = "sales"
 
 
 class Token(BaseModel):

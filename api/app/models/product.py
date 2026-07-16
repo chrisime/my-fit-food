@@ -12,5 +12,5 @@ class Product(Base):
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     price: Mapped[float] = mapped_column(Float)
     category: Mapped[str | None] = mapped_column(String(60), nullable=True)
-    unit: Mapped[str] = mapped_column(String(20), default="porção")
+    unit: Mapped[str] = mapped_column(String(20), default="serving")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

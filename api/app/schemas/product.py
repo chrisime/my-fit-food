@@ -18,7 +18,7 @@ class ProductCreate(BaseModel):
     description: str | None = None
     price: float
     category: str | None = None
-    unit: str = "porção"
+    unit: str = "serving"
     is_active: bool = True
 
 

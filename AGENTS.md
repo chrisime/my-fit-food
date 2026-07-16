@@ -31,8 +31,8 @@
 - Oruga v0.9.x configured globally in `web/src/main.ts` with Tailwind class overrides — **never import `@oruga-ui/theme-oruga/style.css`**.
 - Icons: `@mdi/font` (class `mdi mdi-*`). Imported in `main.ts`.
 - Route guard in `web/src/router/index.ts` via `meta.roles`. Unauthenticated → `/login`.
-- Roles: `admin`, `vendas`, `cozinha`. Nav links gated by role in `App.vue`.
-- `/expedicao` and `/usuarios` are admin-only.
+- Roles: `admin`, `sales`, `kitchen`. Nav links gated by role in `App.vue`. Frontend maps values via `composables/labels.ts`.
+- `/dispatch` and `/users` are admin-only.
 - Stores: `auth.ts`, `orders.ts` in `web/src/stores/`.
 
 ## Notable conventions

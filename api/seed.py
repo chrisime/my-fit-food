@@ -26,13 +26,13 @@ def seed():
                 username="andressa",
                 hashed_password=hash_password("123"),
                 full_name="Andressa Vendas",
-                role="vendas",
+                role="sales",
             ),
             User(
                 username="cozinha",
                 hashed_password=hash_password("123"),
                 full_name="Chef Cozinha",
-                role="cozinha",
+                role="kitchen",
             ),
         ])
 
@@ -42,10 +42,10 @@ def seed():
             Product(name="Carne Moída", price=24.90, category="marmita", unit="un"),
             Product(name="Strogonoff de Frango", price=26.90, category="marmita", unit="un"),
             Product(name="Peixe ao Molho", price=28.90, category="marmita", unit="un"),
-            Product(name="Arroz Branco", price=8.90, category="acompanhamento", unit="porção"),
-            Product(name="Feijão Preto", price=6.90, category="acompanhamento", unit="porção"),
-            Product(name="Batata Doce", price=7.90, category="acompanhamento", unit="porção"),
-            Product(name="Salada Verde", price=5.90, category="acompanhamento", unit="porção"),
+            Product(name="Arroz Branco", price=8.90, category="acompanhamento", unit="serving"),
+            Product(name="Feijão Preto", price=6.90, category="acompanhamento", unit="serving"),
+            Product(name="Batata Doce", price=7.90, category="acompanhamento", unit="serving"),
+            Product(name="Salada Verde", price=5.90, category="acompanhamento", unit="serving"),
         ])
 
     if not db.query(Customer).first():
@@ -59,7 +59,7 @@ def seed():
 
     db.commit()
     db.close()
-    print("Seed complete. Users: admin/admin, andressa/123, cozinha/123 | 5 customers")
+    print("Seed complete. Users: admin/admin, andressa/123, cozinha/123 | 5 products")
 
 
 if __name__ == "__main__":
