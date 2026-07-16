@@ -26,6 +26,7 @@ interface Batch {
   date: string
   lot_ids: number[]
   quantity: number
+  created_at: string
   expires_at: string | null
 }
 
@@ -202,7 +203,7 @@ async function submitMovement() {
               </tr>
               <template v-if="expanded.has(item.product_id)">
                 <tr v-for="batch in item.batches" :key="batch.date" class="border-b hover:bg-gray-50 text-sm">
-                  <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.date) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
+                  <td class="pl-6 text-gray-500">↳ {{ fmtDate(batch.created_at) }} → {{ fmtDate(batch.date) }} (lote #{{ batch.lot_ids.join(', lote #') }})</td>
                   <td class="py-1 text-right font-mono">{{ batch.quantity }} {{ unitLabel(item.unit) }}</td>
                   <td v-if="isAdmin || isKitchen" colspan="2"></td>
                   <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>

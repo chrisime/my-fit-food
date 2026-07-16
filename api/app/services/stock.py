@@ -101,7 +101,7 @@ def compute_stock_balance(db: Session, active_only: bool = True) -> list[dict]:
 
     for p in products:
         in_rows = (
-            db.query(StockMovement.id, StockMovement.quantity, StockMovement.expires_at)
+            db.query(StockMovement.id, StockMovement.quantity, StockMovement.expires_at, StockMovement.created_at)
             .filter(StockMovement.product_id == p.id, StockMovement.type == "in", StockMovement.reversed.is_(False))
             .all()
         )
@@ -116,8 +116,11 @@ def compute_stock_balance(db: Session, active_only: bool = True) -> list[dict]:
         for r in in_rows:
             exp = _utc(r.expires_at)
             key = exp.strftime("%Y-%m-%d")
+            created = _utc(r.created_at).strftime("%Y-%m-%d")
             if key not in groups:
-                groups[key] = {"date": key, "lot_ids": [], "quantity": 0, "expires_at": exp}
+                groups[key] = {"date": key, "lot_ids": [], "quantity": 0, "expires_at": exp, "created_at": created}
+            else:
+                groups[key]["created_at"] = min(groups[key]["created_at"], created)
             groups[key]["lot_ids"].append(r.id)
             groups[key]["quantity"] += r.quantity
 
@@ -141,6 +144,7 @@ def compute_stock_balance(db: Session, active_only: bool = True) -> list[dict]:
                     "date": g["date"],
                     "lot_ids": g["lot_ids"],
                     "quantity": g["quantity"],
+                    "created_at": g["created_at"],
                     "expires_at": g["date"],
                 }
                 for g in batches
