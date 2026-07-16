@@ -14,6 +14,13 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
       ...(options?.headers || {}),
     },
   })
+  if (res.status === 401) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('role')
+    window.location.href = '/login'
+    throw new Error('Sessão expirada')
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     throw new Error(text || `Request failed: ${res.status}`)
