@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.core.enums import OrderStatus, PaymentStatus
 
 
 class Order(Base):
@@ -16,11 +17,14 @@ class Order(Base):
     address_neighborhood: Mapped[str | None] = mapped_column(String(100), nullable=True)
     address_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    payment_status: Mapped[str] = mapped_column(String(20), default="pending")
-    status: Mapped[str] = mapped_column(String(20), default="pending")
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    payment_status: Mapped[PaymentStatus] = mapped_column(String(20), default=PaymentStatus.PENDING)
+    status: Mapped[OrderStatus] = mapped_column(String(20), default=OrderStatus.PENDING)
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None, onupdate=lambda: datetime.now(timezone.utc)
     )
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -32,11 +36,17 @@ class OrderItem(Base):
     __tablename__ = "order_items"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    order_id: Mapped[int] = mapped_column(Integer, ForeignKey("orders.id"))
-    product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id"))
+    order_id: Mapped[int] = mapped_column(Integer, ForeignKey("orders.id"), index=True)
+    product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id"), index=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1)
-    unit_price: Mapped[float] = mapped_column(Float)
+    unit_price: Mapped[float] = mapped_column(Numeric(10, 2))
     is_free: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None, onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     order: Mapped["Order"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship()

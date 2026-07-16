@@ -1,6 +1,7 @@
 """Run once to populate initial data: admin user + sample products + customers."""
 
 from app.core.database import init_db, SessionLocal
+from app.core.enums import OrderStatus, PaymentStatus, ProductCategory, UnitType, UserRole
 from app.core.security import hash_password
 from app.models.user import User
 from app.models.product import Product
@@ -20,32 +21,32 @@ def seed():
                 username="admin",
                 hashed_password=hash_password("admin"),
                 full_name="Administrador",
-                role="admin",
+                role=UserRole.ADMIN,
             ),
             User(
                 username="andressa",
                 hashed_password=hash_password("123"),
                 full_name="Andressa Vendas",
-                role="sales",
+                role=UserRole.SALES,
             ),
             User(
                 username="cozinha",
                 hashed_password=hash_password("123"),
                 full_name="Chef Cozinha",
-                role="kitchen",
+                role=UserRole.KITCHEN,
             ),
         ])
 
     if not db.query(Product).first():
         db.add_all([
-            Product(name="Frango Grelhado", price=22.90, category="marmita", unit="un"),
-            Product(name="Carne Moída", price=24.90, category="marmita", unit="un"),
-            Product(name="Strogonoff de Frango", price=26.90, category="marmita", unit="un"),
-            Product(name="Peixe ao Molho", price=28.90, category="marmita", unit="un"),
-            Product(name="Arroz Branco", price=8.90, category="acompanhamento", unit="serving"),
-            Product(name="Feijão Preto", price=6.90, category="acompanhamento", unit="serving"),
-            Product(name="Batata Doce", price=7.90, category="acompanhamento", unit="serving"),
-            Product(name="Salada Verde", price=5.90, category="acompanhamento", unit="serving"),
+            Product(name="Frango Grelhado", price=22.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
+            Product(name="Carne Moída", price=24.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
+            Product(name="Strogonoff de Frango", price=26.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
+            Product(name="Peixe ao Molho", price=28.90, category=ProductCategory.MARMITA, unit=UnitType.UN),
+            Product(name="Arroz Branco", price=8.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
+            Product(name="Feijão Preto", price=6.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
+            Product(name="Batata Doce", price=7.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
+            Product(name="Salada Verde", price=5.90, category=ProductCategory.ACOMPANHAMENTO, unit=UnitType.SERVING),
         ])
 
     if not db.query(Customer).first():
@@ -59,7 +60,7 @@ def seed():
 
     db.commit()
     db.close()
-    print("Seed complete. Users: admin/admin, andressa/123, cozinha/123 | 5 products")
+    print("Seed complete. Users: admin/admin, andressa/123, cozinha/123 | 5 customers")
 
 
 if __name__ == "__main__":

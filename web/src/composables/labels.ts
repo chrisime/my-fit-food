@@ -19,9 +19,7 @@ export function unitLabel(unit: string): string {
   return UNIT_LABELS[unit] || unit
 }
 
-export function formatQty(value: number, unit: string): string {
-  if (unit === 'kg' || unit === 'L') {
-    return Number(value.toFixed(3)).toString()
-  }
-  return Math.round(value).toString()
+export function formatQty(value: number | string, unit: string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  return Math.round(num).toString()
 }
