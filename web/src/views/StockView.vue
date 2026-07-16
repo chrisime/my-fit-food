@@ -27,7 +27,6 @@ interface Batch {
   lot_ids: number[]
   quantity: number
   expires_at: string | null
-  expired: boolean
 }
 
 interface ProductStock {
@@ -69,7 +68,7 @@ const editingBatch = ref<Batch | null>(null)
 const editExpiresAt = ref('')
 function startEdit(batch: Batch) {
   editingBatch.value = batch
-  editExpiresAt.value = batch.expires_at ? batch.expires_at.split('T')[0] : ''
+  editExpiresAt.value = batch.expires_at || ''
   showEditModal.value = true
 }
 async function saveExpiresAt() {
@@ -88,21 +87,21 @@ async function saveExpiresAt() {
   }
 }
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return '—'
-  return iso.split('T')[0].split('-').reverse().join('/')
+function fmtDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  return dateStr.split('-').reverse().join('/')
 }
 
-function weeksUntil(iso: string | null): number {
-  if (!iso) return Infinity
-  const now = new Date()
-  const exp = new Date(iso.split('T')[0])
-  const diff = exp.getTime() - now.getTime()
-  return diff / (1000 * 60 * 60 * 24 * 7)
+function weeksUntil(dateStr: string | null): number {
+  if (!dateStr) return Infinity
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const exp = new Date(y, m - 1, d)
+  const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+  return (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 7)
 }
 
-function expiryClass(iso: string | null): string {
-  const w = weeksUntil(iso)
+function expiryClass(dateStr: string | null): string {
+  const w = weeksUntil(dateStr)
   if (w <= 0) return 'text-red-600 font-bold'
   if (w < 4) return 'text-red-600'
   if (w < 6) return 'text-yellow-600'

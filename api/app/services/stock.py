@@ -30,8 +30,7 @@ def create_production(db: Session, user_id: int, body) -> Production | StockMove
             product_id=body.product_id,
             type="out",
             quantity=body.quantity,
-            reference_type="adjust",
-            notes=body.notes or f"Ajuste manual (saída)",
+            notes=body.notes or "Ajuste manual (saída)",
             created_by=user_id,
         )
         db.add(movement)
@@ -41,18 +40,16 @@ def create_production(db: Session, user_id: int, body) -> Production | StockMove
 
     prod = Production(
         product_id=body.product_id,
-        quantity=body.quantity,
         notes=body.notes,
         created_by=user_id,
     )
     db.add(prod)
+    db.flush()
 
     movement = StockMovement(
         product_id=body.product_id,
         type="in",
         quantity=body.quantity,
-        reference_type="production",
-        reference_id=prod.id,
         notes=body.notes,
         expires_at=expires_at,
         created_by=user_id,
@@ -69,8 +66,7 @@ def deliver_order(db: Session, user_id: int, order) -> None:
             product_id=item.product_id,
             type="out",
             quantity=item.quantity,
-            reference_type="order",
-            reference_id=order.id,
+            order_id=order.id,
             notes=f"Entrega do pedido #{order.id} - {order.customer_name}",
             created_by=user_id,
         )
@@ -83,8 +79,7 @@ def reverse_delivery(db: Session, order) -> None:
     movements = (
         db.query(StockMovement)
         .filter(
-            StockMovement.reference_type == "order",
-            StockMovement.reference_id == order.id,
+            StockMovement.order_id == order.id,
             StockMovement.type == "out",
             StockMovement.reversed.is_(False),
         )
@@ -102,7 +97,6 @@ def compute_stock_balance(db: Session, active_only: bool = True) -> list[dict]:
         products = products.filter(Product.is_active.is_(True))
     products = products.all()
 
-    now = datetime.now(timezone.utc)
     result = []
 
     for p in products:
@@ -147,8 +141,7 @@ def compute_stock_balance(db: Session, active_only: bool = True) -> list[dict]:
                     "date": g["date"],
                     "lot_ids": g["lot_ids"],
                     "quantity": g["quantity"],
-                    "expires_at": g["expires_at"].isoformat(),
-                    "expired": g["expires_at"] <= now,
+                    "expires_at": g["date"],
                 }
                 for g in batches
                 if g["quantity"] > 0
