@@ -19,6 +19,7 @@ interface RecentOrder {
   payment_status: string
   status: string
   created_at: string
+  delivered_at?: string
   items: { quantity: number; unit_price: number; is_free: boolean }[]
 }
 
@@ -94,6 +95,7 @@ onMounted(async () => {
       payment_status: o.payment_status,
       status: o.status,
       created_at: o.created_at,
+      delivered_at: o.delivered_at,
       items: o.items || [],
     }))
     allStock.value = stockData
@@ -135,15 +137,23 @@ onMounted(async () => {
             :key="o.id"
             class="p-3 border-b last:border-0 text-sm"
           >
-            <div class="flex justify-between items-center">
-              <span class="font-medium">{{ o.customer_name }}</span>
-              <span
-                class="text-xs font-semibold px-2 py-0.5 rounded"
-                :class="o.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-              >
-                {{ o.payment_status === 'paid' ? $t('page.dashboard.paid') : $t('page.dashboard.pending') }}
-              </span>
-            </div>
+        <div class="flex justify-between items-center">
+          <span class="font-medium">{{ o.customer_name }}</span>
+          <div class="flex items-center gap-1">
+            <span
+              class="text-xs font-semibold px-2 py-0.5 rounded"
+              :class="o.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+            >
+              {{ o.payment_status === 'paid' ? $t('page.dashboard.paid') : $t('page.dashboard.pending') }}
+            </span>
+            <span
+              v-if="o.status === 'delivered'"
+              class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700"
+            >
+              {{ $t('page.dashboard.delivered') }}
+            </span>
+          </div>
+        </div>
             <div class="flex justify-between items-center mt-1 text-xs text-gray-400">
               <span>{{ fmtDate(o.created_at) }}</span>
               <span>R$ {{ orderTotal(o) }}</span>

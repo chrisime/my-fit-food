@@ -29,6 +29,7 @@
       "recent_orders": "Letzte Bestellungen",
       "paid": "BEZAHLT",
       "pending": "AUSSTEHEND",
+      "delivered": "GELIEFERT",
       "no_orders": "Keine Bestellungen",
       "low_stock": "Niedriger Bestand",
       "filter_name_placeholder": "Name eingeben...",

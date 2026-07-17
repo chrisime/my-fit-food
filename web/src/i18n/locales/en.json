@@ -29,6 +29,7 @@
       "recent_orders": "Recent Orders",
       "paid": "PAID",
       "pending": "PENDING",
+      "delivered": "DELIVERED",
       "no_orders": "No orders",
       "low_stock": "Low stock",
       "filter_name_placeholder": "Enter name...",
