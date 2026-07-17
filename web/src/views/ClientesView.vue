@@ -126,8 +126,8 @@ async function deleteCustomer(c: Customer) {
             </td>
             <td class="py-3 px-4 text-gray-500 text-xs max-w-[200px] truncate">{{ c.notes || $t('page.customers.empty_placeholder') }}</td>
             <td class="py-3 px-4 flex gap-2 items-center">
-              <o-button variant="info" size="small" :title="$t('page.customers.edit_title')" @click="openEdit(c)"><i class="mdi mdi-pencil"></i></o-button>
-              <o-button variant="danger" size="small" :title="$t('page.customers.delete_title')" @click="deleteCustomer(c)"><i class="mdi mdi-delete"></i></o-button>
+              <o-button variant="info" size="small" :title="$t('page.customers.edit_title')" @click="openEdit(c)"><i class="fas fa-pencil-alt"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.customers.delete_title')" @click="deleteCustomer(c)"><i class="fas fa-trash"></i></o-button>
             </td>
           </tr>
           <tr v-if="!customers.length">

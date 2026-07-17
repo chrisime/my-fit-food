@@ -113,8 +113,8 @@ async function saveUser() {
               </span>
             </td>
             <td class="p-3 text-center flex gap-2 justify-center">
-              <o-button variant="info" size="small" :title="$t('page.users.edit_title')" @click="openEdit(u)"><i class="mdi mdi-pencil"></i></o-button>
-              <o-button variant="danger" size="small" :title="$t('page.users.delete_title')" @click="deleteUser(u)"><i class="mdi mdi-delete"></i></o-button>
+              <o-button variant="info" size="small" :title="$t('page.users.edit_title')" @click="openEdit(u)"><i class="fas fa-pencil-alt"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.users.delete_title')" @click="deleteUser(u)"><i class="fas fa-trash"></i></o-button>
             </td>
           </tr>
         </tbody>

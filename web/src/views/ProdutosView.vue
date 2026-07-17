@@ -136,8 +136,8 @@ async function toggleActive(p: Product) {
               </o-button>
             </td>
             <td class="p-3 text-center flex gap-2 justify-center">
-              <o-button variant="info" size="small" :title="$t('page.products.edit_title')" @click="openEdit(p)"><i class="mdi mdi-pencil"></i></o-button>
-              <o-button variant="danger" size="small" :title="$t('page.products.delete_title')" @click="deleteProduct(p)"><i class="mdi mdi-delete"></i></o-button>
+              <o-button variant="info" size="small" :title="$t('page.products.edit_title')" @click="openEdit(p)"><i class="fas fa-pencil-alt"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.products.delete_title')" @click="deleteProduct(p)"><i class="fas fa-trash"></i></o-button>
             </td>
           </tr>
         </tbody>

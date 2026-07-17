@@ -66,10 +66,10 @@ function total(order: Order) {
     <div class="mt-auto pt-3 space-y-2">
       <div v-if="order.payment_status === 'pending'" class="flex gap-2">
         <o-button variant="info" :title="$t('order_card.edit_title')" @click="emit('edit', order)">
-          <i class="mdi mdi-pencil"></i>
+          <i class="fas fa-pencil-alt"></i>
         </o-button>
         <o-button variant="danger" :title="$t('order_card.delete_title')" @click="emit('delete', order)">
-          <i class="mdi mdi-delete"></i>
+          <i class="fas fa-trash"></i>
         </o-button>
         <o-button variant="primary" class="flex-1" @click="emit('confirm-payment', order.id)">
           {{ $t('order_card.confirm_payment') }}

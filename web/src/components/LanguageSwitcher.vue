@@ -32,7 +32,7 @@ function change(localeCode: 'en' | 'pt' | 'de') {
     >
       <span class="mr-2">{{ currentLanguage.flag }}</span>
       <span class="hidden sm:inline mr-1">{{ currentLanguage.label }}</span>
-      <i class="mdi mdi-chevron-down text-xs"></i>
+      <i class="fas fa-chevron-down text-xs"></i>
     </o-button>
 
     <div
@@ -50,7 +50,7 @@ function change(localeCode: 'en' | 'pt' | 'de') {
       >
         <span class="mr-1">{{ lang.flag }}</span>
         <span>{{ lang.label }}</span>
-        <i v-if="locale === lang.code" class="mdi mdi-check ml-auto text-green-600"></i>
+        <i v-if="locale === lang.code" class="fas fa-check ml-auto text-green-600"></i>
       </o-button>
     </div>
   </div>

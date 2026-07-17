@@ -197,7 +197,7 @@ async function submitMovement() {
               <tr @click="toggle(item.product_id)" class="bg-gray-100 font-semibold cursor-pointer select-none">
                 <td class="py-2">
                   <span class="inline-block w-4 transition-transform duration-150" :class="expanded.has(item.product_id) ? 'rotate-90' : ''">
-                    <i class="mdi mdi-chevron-right"></i>
+                    <i class="fas fa-chevron-right"></i>
                   </span>
                   {{ item.product_name }}
                 </td>
@@ -207,7 +207,7 @@ async function submitMovement() {
                 <td v-if="isAdmin || isKitchen" class="py-2"></td>
                 <td v-if="canWrite" class="py-2 text-center">
                   <o-button variant="primary" size="small" @click.stop="openMovement(item.product_id, item.product_name)">
-                    <i class="mdi mdi-plus"></i>
+                    <i class="fas fa-plus"></i>
                   </o-button>
                 </td>
               </tr>
@@ -218,7 +218,7 @@ async function submitMovement() {
                   <td v-if="isAdmin || isKitchen" colspan="2"></td>
                   <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
                   <td v-if="isAdmin" class="py-1 text-center">
-                    <o-button @click="startEdit(batch)" variant="info" size="small" class="text-gray-400" :title="$t('page.stock.edit_expiry_title')"><i class="mdi mdi-pencil"></i></o-button>
+                    <o-button @click="startEdit(batch)" variant="info" size="small" class="text-gray-400" :title="$t('page.stock.edit_expiry_title')"><i class="fas fa-pencil-alt"></i></o-button>
                   </td>
                 </tr>
               </template>

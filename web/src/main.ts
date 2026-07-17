@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import Oruga, { OrugaComponentPlugins } from '@oruga-ui/oruga-next'
-import '@mdi/font/css/materialdesignicons.min.css'
+import '@fortawesome/fontawesome-free/css/all.min.css'
 
 import App from './App.vue'
 import router from './router'
@@ -9,12 +9,11 @@ import i18n from './i18n'
 import './style.css'
 
 const orugaConfig = {
-    iconPack: 'mdi',
+    iconPack: 'fas',
     customIconPacks: {
-        mdi: {
-            sizes: {
-                default: '',
-            },
+        fas: {
+            sizes: { default: '' },
+            iconPrefix: 'fa-',
         },
     },
     statusIcon: false,

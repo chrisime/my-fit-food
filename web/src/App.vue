@@ -40,9 +40,9 @@ onMounted(() => {
       </div>
 
       <div class="flex items-center justify-end gap-4">
-        <router-link to="/users" class="hover:text-green-200" :title="$t('nav.users')" v-if="auth.user?.role === 'admin'"><i class="mdi mdi-account-cog text-xl"></i></router-link>
+        <router-link to="/users" class="hover:text-green-200" :title="$t('nav.users')" v-if="auth.user?.role === 'admin'"><i class="fas fa-user-cog text-xl"></i></router-link>
         <LanguageSwitcher />
-        <o-button variant="ghost" class="text-white" :title="$t('nav.logout')" @click="auth.logout()"><i class="mdi mdi-logout-variant text-xl"></i></o-button>
+        <o-button variant="ghost" class="text-white" :title="$t('nav.logout')" @click="auth.logout()"><i class="fas fa-sign-out-alt text-xl"></i></o-button>
       </div>
     </nav>
     <main class="p-6">
