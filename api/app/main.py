@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.database import init_db
 from app.core.exceptions import AppException
-from app.routers import auth, customers, dashboard, orders, products, production, stock, ws
+from app.routers import auth, customers, dashboard, deliver, orders, payment, products, production, stock, ws
 
 
 @asynccontextmanager
@@ -52,8 +52,10 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(customers.router)
 app.include_router(dashboard.router)
-app.include_router(products.router)
+app.include_router(deliver.router)
 app.include_router(orders.router)
+app.include_router(payment.router)
+app.include_router(products.router)
 app.include_router(stock.router)
 app.include_router(production.router)
 app.include_router(ws.router)

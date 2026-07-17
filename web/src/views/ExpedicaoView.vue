@@ -105,13 +105,14 @@ async function reverseAndRefresh(orderId: number) {
         </div>
 
         <div class="mt-auto pt-4">
-          <button
+          <o-button
             v-if="!orderHasMissingStock(order)"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2 px-3 rounded"
+            variant="primary"
+            class="w-full"
             @click="deliverAndRefresh(order.id)"
           >
             {{ $t('page.dispatch.confirm_deliver') }}
-          </button>
+          </o-button>
           <p v-else class="text-red-600 text-sm font-semibold text-center">{{ $t('page.dispatch.insufficient_stock') }}</p>
         </div>
       </div>
@@ -129,13 +130,14 @@ async function reverseAndRefresh(orderId: number) {
           <span>{{ order.customer_name }}</span>
           <div class="flex items-center gap-2">
             <span class="text-gray-400">{{ formatDate(order.delivered_at || '') }}</span>
-            <button
+            <o-button
               v-if="auth.user?.role === 'admin'"
               @click="reverseAndRefresh(order.id)"
-              class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded"
+              variant="warning"
+              size="small"
             >
               {{ $t('page.dispatch.revert') }}
-            </button>
+            </o-button>
           </div>
         </div>
       </div>

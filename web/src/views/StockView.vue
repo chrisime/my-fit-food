@@ -46,7 +46,6 @@ function toggle(id: number) {
   if (expanded.value.has(id)) expanded.value.delete(id)
   else expanded.value.add(id)
 }
-const productOptions = ref<{ label: string; value: number }[]>([])
 
 const showForm = ref(false)
 const formProductId = ref(0)
@@ -54,6 +53,17 @@ const formType = ref<'in' | 'out'>('in')
 const formQuantity = ref(1)
 const formNotes = ref('')
 const formExpiresAt = ref('')
+const formProductName = ref('')
+
+function openMovement(productId: number, productName: string) {
+  formProductId.value = productId
+  formProductName.value = productName
+  formType.value = 'in'
+  formQuantity.value = 1
+  formNotes.value = ''
+  formExpiresAt.value = ''
+  showForm.value = true
+}
 
 const { on, off } = useWebSocket()
 
@@ -106,7 +116,7 @@ function expiryClass(dateStr: string | null): string {
 
 onMounted(async () => {
   try {
-    await Promise.all([store.fetchOrders(), fetchBalance(), loadProducts()])
+    await Promise.all([store.fetchOrders(), fetchBalance()])
   } catch (e) {
     toastError(e)
   }
@@ -119,11 +129,6 @@ onMounted(async () => {
 onUnmounted(() => {
   off('stock_updated')
 })
-
-async function loadProducts() {
-  const products = await get<any[]>('/products/')
-  productOptions.value = products.map((p: any) => ({ label: p.name, value: p.id }))
-}
 
 async function fetchBalance() {
   stockBalance.value = await get('/stock/balance')
@@ -170,7 +175,7 @@ async function submitMovement() {
               <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.needed') }}</th>
               <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.difference') }}</th>
               <th v-if="isAdmin || isKitchen" class="py-2 text-right">{{ $t('page.stock.expiry') }}</th>
-              <th v-if="isAdmin" class="py-2 text-center w-10"></th>
+              <th v-if="canWrite" class="py-2 text-center w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -186,7 +191,11 @@ async function submitMovement() {
                 <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono">{{ neededByOrders[item.product_id] || 0 }} {{ $t('unit.' + item.unit) }}</td>
                 <td v-if="isAdmin || isKitchen" class="py-2 text-right font-mono" :class="(item.balance - (neededByOrders[item.product_id] || 0)) < 0 ? 'text-red-600 font-bold' : 'text-green-700'">{{ formatQty(item.balance - (neededByOrders[item.product_id] || 0), item.unit) }} {{ $t('unit.' + item.unit) }}</td>
                 <td v-if="isAdmin || isKitchen" class="py-2"></td>
-                <td v-if="isAdmin" class="py-2"></td>
+                <td v-if="canWrite" class="py-2 text-center">
+                  <o-button variant="primary" size="small" @click.stop="openMovement(item.product_id, item.product_name)">
+                    <i class="mdi mdi-plus"></i>
+                  </o-button>
+                </td>
               </tr>
               <template v-if="expanded.has(item.product_id)">
                 <tr v-for="batch in item.batches" :key="batch.date" class="border-b hover:bg-gray-50 text-sm">
@@ -195,7 +204,7 @@ async function submitMovement() {
                   <td v-if="isAdmin || isKitchen" colspan="2"></td>
                   <td v-if="isAdmin || isKitchen" class="py-1 text-right font-mono text-xs" :class="expiryClass(batch.expires_at)">{{ fmtDate(batch.expires_at) }}</td>
                   <td v-if="isAdmin" class="py-1 text-center">
-                    <button @click="startEdit(batch)" class="text-gray-400 hover:text-blue-600" :title="$t('page.stock.edit_expiry_title')"><i class="mdi mdi-pencil"></i></button>
+                    <o-button @click="startEdit(batch)" variant="info" size="small" class="text-gray-400" :title="$t('page.stock.edit_expiry_title')"><i class="mdi mdi-pencil"></i></o-button>
                   </td>
                 </tr>
               </template>
@@ -214,52 +223,50 @@ async function submitMovement() {
             <o-input v-model="editExpiresAt" type="date" required />
           </o-field>
           <div class="flex justify-end gap-2">
-            <button @click="showEditModal = false" class="px-4 py-1.5 text-sm rounded border hover:bg-gray-100">{{ $t('page.stock.cancel') }}</button>
-            <button @click="saveExpiresAt" class="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">{{ $t('page.stock.save') }}</button>
+            <o-button @click="showEditModal = false">{{ $t('page.stock.cancel') }}</o-button>
+            <o-button @click="saveExpiresAt" variant="info">{{ $t('page.stock.save') }}</o-button>
           </div>
         </div>
       </o-modal>
 
-      <form v-if="showForm && canWrite" @submit.prevent="submitMovement" class="border rounded-lg p-4 space-y-3 bg-gray-50">
-        <p class="text-sm font-semibold text-gray-600">{{ $t('page.stock.movement_form') }}</p>
-        <div class="flex gap-4">
-          <o-field :label="$t('page.stock.product_label')" class="flex-1">
-            <select v-model="formProductId" class="w-full border rounded px-3 py-2 text-sm bg-white" required>
-              <option :value="0" disabled>{{ $t('page.stock.select') }}</option>
-              <option v-for="p in productOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
-            </select>
-          </o-field>
-          <o-field v-if="isAdmin" :label="$t('page.stock.type')" class="w-32">
-            <select v-model="formType" class="w-full border rounded px-3 py-2 text-sm bg-white">
-              <option value="in">{{ $t('page.stock.inbound') }}</option>
-              <option value="out">{{ $t('page.stock.outbound') }}</option>
-            </select>
-          </o-field>
-          <o-field v-else :label="$t('page.stock.type')" class="w-32">
-            <div class="w-full border rounded px-3 py-2 text-sm bg-gray-100 text-gray-500">{{ $t('page.stock.inbound') }}</div>
-          </o-field>
-          <o-field :label="$t('page.stock.qty_label')" class="w-32">
-            <o-input v-model="formQuantity" type="number" min="1" required />
-          </o-field>
+      <o-modal v-model:active="showForm" :width="450">
+        <div class="rounded-lg overflow-hidden">
+          <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
+            <h3 class="text-lg font-bold">{{ $t('page.stock.movement_form') }} — {{ formProductName }}</h3>
+            <o-button variant="ghost" class="text-white/80" @click="showForm = false">&times;</o-button>
+          </div>
+          <form @submit.prevent="submitMovement" class="p-6 space-y-4">
+            <div class="flex gap-4">
+              <o-field v-if="isAdmin" :label="$t('page.stock.type')" class="w-36">
+                <o-select v-model="formType">
+                  <option value="in">{{ $t('page.stock.inbound') }}</option>
+                  <option value="out">{{ $t('page.stock.outbound') }}</option>
+                </o-select>
+              </o-field>
+              <o-field v-else :label="$t('page.stock.type')" class="w-36">
+                <div class="w-full border rounded px-4 py-2.5 text-sm bg-gray-100 text-gray-500">{{ $t('page.stock.inbound') }}</div>
+              </o-field>
+              <o-field :label="$t('page.stock.qty_label')" class="flex-1">
+                <o-input v-model="formQuantity" type="number" min="1" required />
+              </o-field>
+              <o-field v-if="formType === 'in'" :label="$t('page.stock.expiry_label')" class="flex-1" variant="danger" :message="!formExpiresAt && formType === 'in' ? $t('page.stock.required') : ''">
+                <o-input v-model="formExpiresAt" type="date" required />
+              </o-field>
+            </div>
+            <o-field :label="formType === 'out' ? $t('page.stock.reason') : $t('page.stock.notes_label')">
+              <o-input v-model="formNotes" type="textarea" :placeholder="formType === 'out' ? $t('page.stock.placeholder_out') : ''" />
+            </o-field>
+            <div class="flex justify-end gap-3 pt-2 border-t">
+              <o-button type="button" @click="showForm = false">
+                {{ $t('page.stock.cancel') }}
+              </o-button>
+              <o-button variant="primary" type="submit">
+                {{ formType === 'in' ? $t('page.stock.register_inbound') : $t('page.stock.register_outbound') }}
+              </o-button>
+            </div>
+          </form>
         </div>
-        <o-field v-if="formType === 'in'" :label="$t('page.stock.expiry_label')" variant="danger" :message="!formExpiresAt && formType === 'in' ? $t('page.stock.required') : ''">
-          <o-input v-model="formExpiresAt" type="date" required />
-        </o-field>
-        <o-field :label="formType === 'out' ? $t('page.stock.reason') : $t('page.stock.notes_label')">
-          <o-input v-model="formNotes" type="textarea" :placeholder="formType === 'out' ? $t('page.stock.placeholder_out') : ''" />
-        </o-field>
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1.5 px-4 rounded">{{ formType === 'in' ? $t('page.stock.register_inbound') : $t('page.stock.register_outbound') }}</button>
-      </form>
-
-      <div v-if="canWrite" class="flex justify-center pt-2 border-t">
-        <button
-          type="button"
-          :title="showForm ? $t('page.stock.close_title') : $t('page.stock.open_title')"
-          class="p-2 rounded-full hover:bg-gray-200"
-          :class="showForm ? 'text-green-600 bg-green-100' : 'text-gray-600'"
-          @click="showForm = !showForm"
-        ><i class="mdi mdi-arrow-up-bold-circle text-2xl"></i></button>
-      </div>
+      </o-modal>
     </div>
   </div>
 </template>

@@ -30,8 +30,11 @@
       "paid": "PAGO",
       "pending": "PENDENTE",
       "no_orders": "Nenhum pedido",
-      "low_stock": "Estoque Baixo (< 5)",
-      "all_stocked": "Todos os produtos com estoque suficiente"
+      "low_stock": "Estoque baixo",
+      "filter_name_placeholder": "Digite o nome...",
+      "filter_stock_placeholder": "Estoque máx.",
+      "filter_date_from": "De:",
+      "filter_date_to": "Até:"
     },
     "vendas": {
       "title": "Pedidos",

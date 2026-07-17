@@ -51,22 +51,22 @@ export const useOrderStore = defineStore('orders', () => {
   }
 
   async function updatePayment(orderId: number, payment_status: string) {
-    await patch(`/orders/${orderId}/payment`, { payment_status })
+    await post<Order>('/payment/', { order_id: orderId, payment_status })
     await fetchOrders()
   }
 
   async function deliverOrder(orderId: number) {
-    await patch(`/orders/${orderId}/deliver`)
+    await post<Order>('/deliver/', { order_id: orderId })
     await fetchOrders()
   }
 
   async function reversePayment(orderId: number) {
-    await patch(`/orders/${orderId}/reverse-payment`)
+    await del(`/payment/${orderId}`)
     await fetchOrders()
   }
 
   async function reverseDelivery(orderId: number) {
-    await patch(`/orders/${orderId}/reverse-delivery`)
+    await del(`/deliver/${orderId}`)
     await fetchOrders()
   }
 
@@ -74,7 +74,7 @@ export const useOrderStore = defineStore('orders', () => {
     orderId: number,
     data: { notes?: string; items: { product_id: number; quantity: number }[] }
   ) {
-    await put(`/orders/${orderId}`, data)
+    await post<Order>('/orders/update', { order_id: orderId, ...data })
     await fetchOrders()
   }
 

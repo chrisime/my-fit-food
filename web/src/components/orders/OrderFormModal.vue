@@ -104,16 +104,16 @@ async function submitOrder() {
     <div class="rounded-lg overflow-hidden">
       <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">{{ $t('order_form.title') }}</h3>
-        <button class="text-white/80 hover:text-white text-xl leading-none" @click="emit('close')">&times;</button>
+        <o-button variant="ghost" class="text-white/80" @click="emit('close')">&times;</o-button>
       </div>
       <form @submit.prevent="submitOrder" class="p-6 space-y-4">
         <o-field :label="$t('order_form.existing_customer')">
           <div class="flex gap-1">
-            <select v-model="selectedCustomerId" class="flex-1 border rounded px-3 py-2 text-sm bg-white" @change="selectCustomer">
+            <o-select v-model="selectedCustomerId" @change="selectCustomer">
               <option :value="0">{{ $t('order_form.select_customer') }}</option>
               <option v-for="c in customerOptions" :key="c.value" :value="c.value">{{ c.label }}</option>
-            </select>
-            <button type="button" :title="$t('order_form.new_customer_title')" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="$router.push('/customers')">+</button>
+            </o-select>
+            <o-button variant="ghost" class="text-green-700" :title="$t('order_form.new_customer_title')" @click="$router.push('/customers')">+</o-button>
           </div>
         </o-field>
         <div class="grid grid-cols-2 gap-4">
@@ -127,14 +127,12 @@ async function submitOrder() {
         <div class="border rounded-lg p-3 bg-gray-50 space-y-3">
           <p class="text-sm font-semibold text-gray-600">{{ $t('order_form.delivery_address') }}</p>
           <div v-if="customerData?.address2_street" class="flex gap-4 mb-3">
-            <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-              <input type="radio" name="address" value="1" :checked="selectedAddress === '1'" @change="applyAddress('1')" class="text-green-600" />
+            <o-radio v-model="selectedAddress" :native-value="'1'" @change="applyAddress('1')">
               {{ $t('order_form.address_1') }}
-            </label>
-            <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-              <input type="radio" name="address" value="2" :checked="selectedAddress === '2'" @change="applyAddress('2')" class="text-green-600" />
+            </o-radio>
+            <o-radio v-model="selectedAddress" :native-value="'2'" @change="applyAddress('2')">
               {{ $t('order_form.address_2') }}
-            </label>
+            </o-radio>
           </div>
           <o-field :label="$t('order_form.street')">
             <o-input v-model="addressStreet" :placeholder="$t('order_form.street_placeholder')" />
@@ -156,35 +154,35 @@ async function submitOrder() {
           <div v-for="(item, i) in items" :key="i" class="flex gap-3 items-end">
             <o-field :label="$t('order_form.product')" class="flex-1">
               <div class="flex gap-1">
-                <select v-model="item.product_id" class="flex-1 border rounded px-3 py-2 text-sm bg-white">
+                <o-select v-model="item.product_id">
                   <option :value="0" disabled>{{ $t('order_form.select') }}</option>
                   <option v-for="p in productOptions" :key="p.value" :value="p.value">
                     {{ p.label }}
                   </option>
-                </select>
-                <button type="button" :title="$t('order_form.new_product_title')" class="text-green-700 hover:text-green-800 text-lg leading-none px-1" @click="emit('new-product')">+</button>
+                </o-select>
+                <o-button variant="ghost" class="text-green-700" :title="$t('order_form.new_product_title')" @click="emit('new-product')">+</o-button>
               </div>
             </o-field>
             <o-field :label="$t('order_form.qty')" class="w-24">
               <o-input v-model="item.quantity" type="number" min="1" />
             </o-field>
-            <label class="flex items-center gap-1 text-xs whitespace-nowrap mb-1" style="padding-bottom:2px">
-              <input type="checkbox" v-model="item.is_free" class="w-3.5 h-3.5 rounded border-gray-300 text-green-600" />
+            <div class="flex items-center gap-1 text-xs whitespace-nowrap mb-1" style="padding-bottom:2px">
+              <o-checkbox v-model="item.is_free" />
               {{ $t('order_form.free') }}
-            </label>
+            </div>
           </div>
-          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="addItem">{{ $t('order_form.add_item') }}</button>
+          <o-button variant="ghost" class="text-green-700 font-semibold" @click="addItem">{{ $t('order_form.add_item') }}</o-button>
         </div>
         <div class="text-right text-lg font-bold text-green-700">
           {{ $t('order_form.total') }} R$ {{ totalAmount.toFixed(2) }}
         </div>
         <div class="flex justify-end gap-3 pt-2 border-t">
-          <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="emit('close')">
+          <o-button @click="emit('close')">
             {{ $t('order_form.cancel') }}
-          </button>
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
+          </o-button>
+          <o-button variant="primary" type="submit">
             {{ $t('order_form.save') }}
-          </button>
+          </o-button>
         </div>
       </form>
     </div>

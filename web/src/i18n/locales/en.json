@@ -30,8 +30,11 @@
       "paid": "PAID",
       "pending": "PENDING",
       "no_orders": "No orders",
-      "low_stock": "Low Stock (< 5)",
-      "all_stocked": "All products with sufficient stock"
+      "low_stock": "Low stock",
+      "filter_name_placeholder": "Enter name...",
+      "filter_stock_placeholder": "Max stock",
+      "filter_date_from": "From:",
+      "filter_date_to": "To:"
     },
     "vendas": {
       "title": "Orders",

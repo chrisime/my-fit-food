@@ -127,10 +127,10 @@ const filteredOrders = computed(() => {
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">{{ $t('page.vendas.title') }}</h2>
       <div class="flex gap-2 items-center">
-        <input v-model="search" :placeholder="$t('page.vendas.search_placeholder')" class="border rounded px-3 py-1.5 text-sm" />
-        <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded text-sm" @click="showForm = true">
+        <o-input v-model="search" :placeholder="$t('page.vendas.search_placeholder')" />
+        <o-button variant="primary" icon-left="plus" class="font-semibold" @click="showForm = true">
           {{ $t('page.vendas.new_order') }}
-        </button>
+        </o-button>
       </div>
     </div>
 
@@ -155,7 +155,7 @@ const filteredOrders = computed(() => {
       <div class="rounded-lg overflow-hidden">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
           <h3 class="text-lg font-bold">{{ editingProductId ? $t('page.vendas.edit_product') : $t('page.vendas.new_product') }}</h3>
-          <button class="text-white/80 hover:text-white text-xl leading-none" @click="showProductForm = false">&times;</button>
+          <o-button variant="ghost" class="text-white/80 text-xl leading-none" @click="showProductForm = false">&times;</o-button>
         </div>
         <form @submit.prevent="saveProduct" class="p-6 space-y-4">
           <o-field :label="$t('page.vendas.name')">
@@ -166,38 +166,35 @@ const filteredOrders = computed(() => {
               <o-input v-model="productForm.price" type="number" step="0.1" min="0" required />
             </o-field>
             <o-field :label="$t('page.vendas.unit')" class="w-28">
-              <select v-model="productForm.unit" class="w-full border rounded px-3 py-2 text-sm bg-white">
+              <o-select v-model="productForm.unit" expanded>
                 <option value="un">{{ $t('unit.un') }}</option>
                 <option value="serving">{{ $t('unit.serving') }}</option>
                 <option value="kg">{{ $t('unit.kg') }}</option>
                 <option value="L">{{ $t('unit.L') }}</option>
-              </select>
+              </o-select>
             </o-field>
           </div>
           <o-field :label="$t('page.vendas.category')">
-            <select v-model="productForm.category" class="w-full border rounded px-3 py-2 text-sm bg-white">
+            <o-select v-model="productForm.category">
               <option value="">{{ $t('page.vendas.no_category') }}</option>
               <option value="meal_box">{{ $t('page.vendas.meal_box') }}</option>
               <option value="side_dish">{{ $t('page.vendas.side_dish') }}</option>
               <option value="juice">{{ $t('page.vendas.juice') }}</option>
               <option value="brownie">{{ $t('page.vendas.brownie') }}</option>
               <option value="broth">{{ $t('page.vendas.broth') }}</option>
-            </select>
+            </o-select>
           </o-field>
           <o-field :label="$t('page.vendas.description')">
             <o-input v-model="productForm.description" type="textarea" />
           </o-field>
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" v-model="productForm.is_active" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
-            <span class="text-sm font-medium text-gray-700">{{ $t('page.vendas.active') }}</span>
-          </label>
+          <o-checkbox v-model="productForm.is_active">{{ $t('page.vendas.active') }}</o-checkbox>
           <div class="flex justify-end gap-3 pt-2 border-t">
-            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="showProductForm = false">
+            <o-button type="button" @click="showProductForm = false">
               {{ $t('page.vendas.cancel') }}
-            </button>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
+            </o-button>
+            <o-button variant="primary" type="submit">
               {{ $t('page.vendas.save') }}
-            </button>
+            </o-button>
           </div>
         </form>
       </div>

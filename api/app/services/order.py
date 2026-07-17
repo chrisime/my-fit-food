@@ -48,7 +48,11 @@ def create_order(db: Session, body: OrderCreate, user_id: int) -> Order:
         items=_build_items(db, body.items),
     )
     db.add(order)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(order)
     return order
 
@@ -61,7 +65,11 @@ def update_order(db: Session, order_id: int, body: OrderUpdate) -> Order:
     order.items.clear()
     db.flush()
     order.items = _build_items(db, body.items)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(order)
     return order
 
@@ -71,22 +79,8 @@ def delete_order(db: Session, order_id: int) -> None:
     if order.payment_status != "pending":
         raise AppException(400, ErrorCode.ORDER_CANNOT_DELETE, "Only pending orders can be deleted")
     db.delete(order)
-    db.commit()
-
-
-def update_payment(db: Session, order_id: int, payment_status: str) -> Order:
-    order = get_or_404(db, Order, order_id, "Order not found")
-    order.payment_status = payment_status
-    db.commit()
-    db.refresh(order)
-    return order
-
-
-def reverse_payment(db: Session, order_id: int) -> Order:
-    order = get_or_404(db, Order, order_id, "Order not found")
-    if order.status == "delivered":
-        raise AppException(400, ErrorCode.ORDER_PAYMENT_REVERT, "Cannot reverse payment for a delivered order")
-    order.payment_status = "pending"
-    db.commit()
-    db.refresh(order)
-    return order
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise

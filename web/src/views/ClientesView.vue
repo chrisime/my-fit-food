@@ -100,9 +100,9 @@ async function deleteCustomer(c: Customer) {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">{{ $t('page.customers.title') }}</h2>
-      <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded text-sm" @click="openNew">
+      <o-button variant="primary" icon-left="plus" class="font-semibold" @click="openNew">
         {{ $t('page.customers.new') }}
-      </button>
+      </o-button>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -125,9 +125,9 @@ async function deleteCustomer(c: Customer) {
               <div v-if="c.address2_street" class="mt-1 text-gray-400">{{ [c.address2_street, c.address2_neighborhood, c.address2_city].filter(Boolean).join(', ') }}</div>
             </td>
             <td class="py-3 px-4 text-gray-500 text-xs max-w-[200px] truncate">{{ c.notes || $t('page.customers.empty_placeholder') }}</td>
-            <td class="py-3 px-4">
-              <button class="text-blue-600 hover:text-blue-800 mr-2" :title="$t('page.customers.edit_title')" @click="openEdit(c)"><i class="mdi mdi-pencil"></i></button>
-              <button class="text-red-600 hover:text-red-800" :title="$t('page.customers.delete_title')" @click="deleteCustomer(c)"><i class="mdi mdi-delete"></i></button>
+            <td class="py-3 px-4 flex gap-2 items-center">
+              <o-button variant="info" size="small" :title="$t('page.customers.edit_title')" @click="openEdit(c)"><i class="mdi mdi-pencil"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.customers.delete_title')" @click="deleteCustomer(c)"><i class="mdi mdi-delete"></i></o-button>
             </td>
           </tr>
           <tr v-if="!customers.length">
@@ -141,7 +141,7 @@ async function deleteCustomer(c: Customer) {
       <div class="rounded-lg overflow-hidden">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
           <h3 class="text-lg font-bold">{{ editingId ? $t('page.customers.edit') : $t('page.customers.new') }}</h3>
-          <button class="text-white/80 hover:text-white text-xl leading-none" @click="showModal = false">&times;</button>
+          <o-button variant="ghost" class="text-white/80 text-xl leading-none" @click="showModal = false">&times;</o-button>
         </div>
         <form @submit.prevent="save" class="p-6 space-y-4">
           <o-field :label="$t('page.customers.table_name')">
@@ -182,12 +182,12 @@ async function deleteCustomer(c: Customer) {
             <o-input v-model="form.notes" type="textarea" />
           </o-field>
           <div class="flex justify-end gap-3 pt-2 border-t">
-            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="showModal = false">
+            <o-button type="button" @click="showModal = false">
               {{ $t('page.customers.cancel') }}
-            </button>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
+            </o-button>
+            <o-button variant="primary" type="submit" class="font-semibold py-2 px-6 rounded shadow-sm">
               {{ $t('page.customers.save') }}
-            </button>
+            </o-button>
           </div>
         </form>
       </div>

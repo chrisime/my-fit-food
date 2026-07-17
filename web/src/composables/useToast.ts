@@ -3,7 +3,7 @@ import { useNotificationProgrammatic } from '@oruga-ui/oruga-next'
 import { AppError } from '@/types/error'
 
 export function useToast() {
-  const { t } = useI18n()
+  const { t, te } = useI18n()
   const notification = useNotificationProgrammatic()
 
   function toast(key: string, variant: 'success' | 'danger' | 'warning' = 'danger', duration = 4000) {
@@ -20,7 +20,7 @@ export function useToast() {
       const variant = err.statusCode >= 500 ? 'warning' : 'danger'
       const key = `error.${err.code}`
       notification.open({
-        message: t(key),
+        message: te(key) ? t(key) : t('error.unknown'),
         variant,
         duration: 4000,
         position: 'top-right',

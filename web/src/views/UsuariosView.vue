@@ -80,9 +80,9 @@ async function saveUser() {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">{{ $t('page.users.title') }}</h2>
-      <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded text-sm" @click="openNew">
+      <o-button variant="primary" icon-left="plus" @click="openNew">
         {{ $t('page.users.new') }}
-      </button>
+      </o-button>
     </div>
 
     <div class="bg-white rounded shadow overflow-hidden">
@@ -113,8 +113,8 @@ async function saveUser() {
               </span>
             </td>
             <td class="p-3 text-center flex gap-2 justify-center">
-              <button class="text-blue-600 hover:text-blue-800" :title="$t('page.users.edit_title')" @click="openEdit(u)"><i class="mdi mdi-pencil"></i></button>
-              <button class="text-red-600 hover:text-red-800" :title="$t('page.users.delete_title')" @click="deleteUser(u)"><i class="mdi mdi-delete"></i></button>
+              <o-button variant="info" size="small" :title="$t('page.users.edit_title')" @click="openEdit(u)"><i class="mdi mdi-pencil"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.users.delete_title')" @click="deleteUser(u)"><i class="mdi mdi-delete"></i></o-button>
             </td>
           </tr>
         </tbody>
@@ -125,7 +125,7 @@ async function saveUser() {
       <div class="rounded-lg overflow-hidden">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
           <h3 class="text-lg font-bold">{{ isEditing ? $t('page.users.edit') : $t('page.users.new') }}</h3>
-          <button class="text-white/80 hover:text-white text-xl leading-none" @click="showModal = false">&times;</button>
+          <o-button variant="ghost" class="text-white/80" @click="showModal = false">&times;</o-button>
         </div>
         <form @submit.prevent="saveUser" class="p-6 space-y-4">
           <o-field :label="$t('page.users.full_name')">
@@ -139,19 +139,19 @@ async function saveUser() {
             <p v-if="isEditing" class="text-xs text-gray-400 mt-1">{{ $t('page.users.password_keep') }}</p>
           </o-field>
           <o-field :label="$t('page.users.role')">
-            <select v-model="form.role" class="w-full border rounded px-3 py-2 text-sm bg-white">
+            <o-select v-model="form.role">
               <option value="sales">{{ $t('role.sales') }}</option>
               <option value="kitchen">{{ $t('role.kitchen') }}</option>
               <option value="admin">{{ $t('role.admin') }}</option>
-            </select>
+            </o-select>
           </o-field>
           <div class="flex justify-end gap-3 pt-2 border-t">
-            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="showModal = false">
+            <o-button type="button" @click="showModal = false">
               {{ $t('page.users.cancel') }}
-            </button>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
+            </o-button>
+            <o-button variant="primary" type="submit">
               {{ $t('page.users.save') }}
-            </button>
+            </o-button>
           </div>
         </form>
       </div>

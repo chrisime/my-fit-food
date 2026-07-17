@@ -103,9 +103,9 @@ async function toggleActive(p: Product) {
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">{{ $t('page.products.title') }}</h2>
-      <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded" @click="openNew">
+      <o-button variant="primary" icon-left="plus" class="font-semibold" @click="openNew">
         {{ $t('page.products.new') }}
-      </button>
+      </o-button>
     </div>
 
     <div class="bg-white rounded shadow overflow-hidden">
@@ -127,17 +127,17 @@ async function toggleActive(p: Product) {
             <td class="p-3 text-right font-mono">R$ {{ p.price.toFixed(2) }}</td>
             <td class="p-3 text-center">{{ $t('unit.' + p.unit) }}</td>
             <td class="p-3 text-center">
-              <button
-                class="text-xs font-semibold px-2 py-1 rounded"
-                :class="p.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+              <o-button
+                size="small"
+                :variant="p.is_active ? 'primary' : 'danger'"
                 @click="toggleActive(p)"
               >
                 {{ p.is_active ? $t('page.products.active_yes') : $t('page.products.active_no') }}
-              </button>
+              </o-button>
             </td>
             <td class="p-3 text-center flex gap-2 justify-center">
-              <button class="text-blue-600 hover:text-blue-800" :title="$t('page.products.edit_title')" @click="openEdit(p)"><i class="mdi mdi-pencil"></i></button>
-              <button class="text-red-600 hover:text-red-800" :title="$t('page.products.delete_title')" @click="deleteProduct(p)"><i class="mdi mdi-delete"></i></button>
+              <o-button variant="info" size="small" :title="$t('page.products.edit_title')" @click="openEdit(p)"><i class="mdi mdi-pencil"></i></o-button>
+              <o-button variant="danger" size="small" :title="$t('page.products.delete_title')" @click="deleteProduct(p)"><i class="mdi mdi-delete"></i></o-button>
             </td>
           </tr>
         </tbody>
@@ -148,49 +148,49 @@ async function toggleActive(p: Product) {
       <div class="rounded-lg overflow-hidden">
         <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
           <h3 class="text-lg font-bold">{{ isNew ? $t('page.products.new') : $t('page.products.edit') }}</h3>
-          <button class="text-white/80 hover:text-white text-xl leading-none" @click="showModal = false">&times;</button>
+          <o-button variant="ghost" class="text-white/80" @click="showModal = false">&times;</o-button>
         </div>
         <form @submit.prevent="save" class="p-6 space-y-4">
           <o-field :label="$t('page.products.name')">
             <o-input v-model="form.name" required />
           </o-field>
-          <o-field :label="$t('page.products.category')">
-            <select v-model="form.category" class="w-full border rounded px-3 py-2 text-sm bg-white">
-              <option value="">{{ $t('page.products.no_category') }}</option>
-              <option value="meal_box">{{ $t('page.vendas.meal_box') }}</option>
-              <option value="side_dish">{{ $t('page.vendas.side_dish') }}</option>
-              <option value="juice">{{ $t('page.vendas.juice') }}</option>
-              <option value="brownie">{{ $t('page.vendas.brownie') }}</option>
-              <option value="broth">{{ $t('page.vendas.broth') }}</option>
-            </select>
-          </o-field>
-          <div class="flex gap-4">
-            <o-field :label="$t('page.products.price')" class="flex-1">
+          <div class="flex gap-4 items-start">
+            <o-field :label="$t('page.products.category')" class="flex-1">
+              <o-select v-model="form.category">
+                <option value="">{{ $t('page.products.no_category') }}</option>
+                <option value="meal_box">{{ $t('page.vendas.meal_box') }}</option>
+                <option value="side_dish">{{ $t('page.vendas.side_dish') }}</option>
+                <option value="juice">{{ $t('page.vendas.juice') }}</option>
+                <option value="brownie">{{ $t('page.vendas.brownie') }}</option>
+                <option value="broth">{{ $t('page.vendas.broth') }}</option>
+              </o-select>
+            </o-field>
+            <o-field :label="$t('page.products.price')" class="w-32">
               <o-input v-model="form.price" type="number" step="0.1" min="0" required />
             </o-field>
             <o-field :label="$t('page.products.unit')" class="w-28">
-              <select v-model="form.unit" class="w-full border rounded px-3 py-2 text-sm bg-white">
+              <o-select v-model="form.unit">
                 <option value="un">{{ $t('unit.un') }}</option>
                 <option value="serving">{{ $t('unit.serving') }}</option>
                 <option value="kg">{{ $t('unit.kg') }}</option>
                 <option value="L">{{ $t('unit.L') }}</option>
-              </select>
+              </o-select>
             </o-field>
           </div>
           <o-field :label="$t('page.products.description')">
             <o-input v-model="form.description" type="textarea" />
           </o-field>
           <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" v-model="form.is_active" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+            <o-checkbox v-model="form.is_active" />
             <span class="text-sm font-medium text-gray-700">{{ $t('page.products.active') }}</span>
           </label>
           <div class="flex justify-end gap-3 pt-2 border-t">
-            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="showModal = false">
+            <o-button type="button" @click="showModal = false">
               {{ $t('page.products.cancel') }}
-            </button>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">
+            </o-button>
+            <o-button variant="primary" type="submit">
               {{ $t('page.products.save') }}
-            </button>
+            </o-button>
           </div>
         </form>
       </div>

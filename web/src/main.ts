@@ -10,17 +10,24 @@ import './style.css'
 
 const orugaConfig = {
     iconPack: 'mdi',
+    customIconPacks: {
+        mdi: {
+            sizes: {
+                default: '',
+            },
+        },
+    },
     statusIcon: false,
     input: {
         override: true,
         rootClass: 'relative',
         inputClass: [
-            'w-full border rounded px-3 py-2 text-sm bg-white',
+            'w-full border rounded px-4 py-2.5 text-sm bg-white',
             'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
         ],
         expandedClass: 'w-full',
         textareaClass: [
-            'w-full border rounded px-3 py-2 text-sm bg-white resize-y min-h-[80px]',
+            'w-full border rounded px-4 py-2.5 text-sm bg-white resize-y min-h-[80px]',
             'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
         ],
         disabledClass: 'bg-gray-100 text-gray-500 cursor-not-allowed',
@@ -35,6 +42,47 @@ const orugaConfig = {
             if (suffix === 'danger') return 'border-red-500 focus:ring-red-500 focus:border-red-500'
             return ''
         },
+    },
+    button: {
+        override: true,
+        size: 'md',
+        rootClass: 'inline-flex items-center justify-center font-medium rounded transition-colors',
+        sizeClass: (size: string) => {
+            if (size === 'small') return 'text-xs py-0.5 px-1.5'
+            return 'text-base py-2.5 px-4'
+        },
+        variantClass: (suffix: string) => {
+            if (suffix === 'primary') return 'bg-green-700 text-white hover:bg-green-800'
+            if (suffix === 'danger') return 'bg-red-600 text-white hover:bg-red-700'
+            if (suffix === 'ghost') return 'bg-transparent hover:bg-black/5'
+            if (suffix === 'outline') return 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+            return 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+        },
+        disabledClass: 'opacity-50 cursor-not-allowed',
+        wrapperClass: 'inline-flex items-center gap-1.5',
+    },
+    select: {
+        override: true,
+        rootClass: 'relative',
+        selectClass: [
+            'w-full border rounded px-4 py-2.5 text-sm bg-white',
+            'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
+        ],
+        expandedClass: 'w-full',
+        disabledClass: 'bg-gray-100 text-gray-500 cursor-not-allowed',
+        sizeClass: '',
+    },
+    checkbox: {
+        override: true,
+        rootClass: 'inline-flex items-center gap-2',
+        checkClass: 'w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500',
+        labelClass: 'text-sm',
+    },
+    radio: {
+        override: true,
+        rootClass: 'inline-flex items-center gap-2',
+        radioClass: 'text-green-600 focus:ring-green-500',
+        labelClass: 'text-sm',
     },
     field: {
         override: true,

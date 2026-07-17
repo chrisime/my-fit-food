@@ -30,8 +30,11 @@
       "paid": "BEZAHLT",
       "pending": "AUSSTEHEND",
       "no_orders": "Keine Bestellungen",
-      "low_stock": "Niedriger Bestand (< 5)",
-      "all_stocked": "Alle Produkte mit ausreichendem Bestand"
+      "low_stock": "Niedriger Bestand",
+      "filter_name_placeholder": "Name eingeben...",
+      "filter_stock_placeholder": "Max. Bestand",
+      "filter_date_from": "Von:",
+      "filter_date_to": "Bis:"
     },
     "vendas": {
       "title": "Bestellungen",

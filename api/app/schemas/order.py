@@ -50,9 +50,15 @@ class OrderOut(BaseModel):
 
 
 class OrderUpdate(BaseModel):
+    order_id: int
     notes: str | None = None
     items: list[OrderItemIn]
 
 
 class PaymentUpdate(BaseModel):
+    payment_status: str
+
+
+class PaymentBody(BaseModel):
+    order_id: int
     payment_status: str

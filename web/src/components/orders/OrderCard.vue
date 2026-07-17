@@ -65,23 +65,24 @@ function total(order: Order) {
     <p v-if="order.notes" class="mt-2 text-xs text-gray-500 italic">{{ order.notes }}</p>
     <div class="mt-auto pt-3 space-y-2">
       <div v-if="order.payment_status === 'pending'" class="flex gap-2">
-        <button @click="emit('edit', order)" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded" :title="$t('order_card.edit_title')">
+        <o-button variant="info" :title="$t('order_card.edit_title')" @click="emit('edit', order)">
           <i class="mdi mdi-pencil"></i>
-        </button>
-        <button @click="emit('delete', order)" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded" :title="$t('order_card.delete_title')">
+        </o-button>
+        <o-button variant="danger" :title="$t('order_card.delete_title')" @click="emit('delete', order)">
           <i class="mdi mdi-delete"></i>
-        </button>
-        <button @click="emit('confirm-payment', order.id)" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-3 rounded">
+        </o-button>
+        <o-button variant="primary" class="flex-1" @click="emit('confirm-payment', order.id)">
           {{ $t('order_card.confirm_payment') }}
-        </button>
+        </o-button>
       </div>
-      <button
+      <o-button
         v-if="order.payment_status === 'paid' && role === 'admin' && order.status !== 'delivered'"
+        variant="warning"
+        class="w-full"
         @click="emit('reverse-payment', order.id)"
-        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-3 rounded"
       >
         {{ $t('order_card.revert_payment') }}
-      </button>
+      </o-button>
     </div>
   </div>
 </template>

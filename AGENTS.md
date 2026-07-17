@@ -28,7 +28,9 @@
 - Role guard: `require_role("admin")` from `app.core.deps`. Admin can access everything.
 
 ## Frontend
-- Oruga v0.9.x configured globally in `web/src/main.ts` with Tailwind class overrides — **never import `@oruga-ui/theme-oruga/style.css`**.
+- Oruga v0.13.x configured globally in `web/src/main.ts` with Tailwind class overrides — **never import `@oruga-ui/theme-oruga/style.css`**.
+- **Consistency rule: All interactive elements must use Oruga components** — `o-input` for inputs, `o-button` for buttons, `o-field` for field wrappers, `o-modal` for modals. Never use native `<input>`, `<button>`, `<textarea>`, or `<select>` directly. New components follow the same rule. Configure new Oruga component variants in `main.ts` when needed.
+- **Oruga v0.13 prop:** use `type` (not `native-type`) to set native button type — e.g. `type="submit"`, `type="button"`.
 - Icons: `@mdi/font` (class `mdi mdi-*`). Imported in `main.ts`.
 - Route guard in `web/src/router/index.ts` via `meta.roles`. Unauthenticated → `/login`.
 - Roles: `admin`, `sales`, `kitchen`. Nav links gated by role in `App.vue`. Frontend maps values via `composables/labels.ts`.

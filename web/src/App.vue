@@ -35,14 +35,14 @@ onMounted(() => {
         <router-link to="/dispatch" class="px-3 py-1.5 rounded hover:bg-green-600 font-medium text-sm" v-if="auth.user?.role === 'admin'">{{ $t('nav.dispatch') }}</router-link>
       </div>
 
-      <div class="text-sm text-center">
+      <div class="text-sm justify-end">
         {{ $t('nav.logged_as') }} <strong>{{ auth.user?.full_name }}</strong>
       </div>
 
       <div class="flex items-center justify-end gap-4">
-        <LanguageSwitcher />
         <router-link to="/users" class="hover:text-green-200" :title="$t('nav.users')" v-if="auth.user?.role === 'admin'"><i class="mdi mdi-account-cog text-xl"></i></router-link>
-        <button class="hover:text-green-200" :title="$t('nav.logout')" @click="auth.logout()"><i class="mdi mdi-logout-variant text-xl"></i></button>
+        <LanguageSwitcher />
+        <o-button variant="ghost" class="text-white" :title="$t('nav.logout')" @click="auth.logout()"><i class="mdi mdi-logout-variant text-xl"></i></o-button>
       </div>
     </nav>
     <main class="p-6">

@@ -61,7 +61,7 @@ async function submitEditOrder() {
     <div class="rounded-lg overflow-hidden">
       <div class="bg-green-700 text-white px-6 py-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">{{ $t('edit_order.title', { customer: order?.customer_name }) }}</h3>
-        <button class="text-white/80 hover:text-white text-xl leading-none" @click="emit('close')">&times;</button>
+        <o-button variant="ghost" class="text-white/80" @click="emit('close')">&times;</o-button>
       </div>
       <form @submit.prevent="submitEditOrder" class="p-6 space-y-4">
         <o-field :label="$t('edit_order.notes')">
@@ -71,27 +71,24 @@ async function submitEditOrder() {
           <p class="text-sm font-semibold text-gray-600">{{ $t('edit_order.items') }}</p>
           <div v-for="(item, i) in editItems" :key="i" class="flex gap-3 items-end">
             <o-field :label="$t('edit_order.product')" class="flex-1">
-              <select v-model="item.product_id" class="w-full border rounded px-3 py-2 text-sm bg-white">
+              <o-select v-model="item.product_id" expanded>
                 <option :value="0" disabled>{{ $t('edit_order.select') }}</option>
                 <option v-for="p in productOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
-              </select>
+              </o-select>
             </o-field>
             <o-field :label="$t('edit_order.qty')" class="w-24">
               <o-input v-model="item.quantity" type="number" min="1" />
             </o-field>
-            <label class="flex items-center gap-1 text-xs whitespace-nowrap mb-1" style="padding-bottom:2px">
-              <input type="checkbox" v-model="item.is_free" class="w-3.5 h-3.5 rounded border-gray-300 text-green-600" />
-              {{ $t('edit_order.free') }}
-            </label>
+            <o-checkbox v-model="item.is_free" class="mb-1">{{ $t('edit_order.free') }}</o-checkbox>
           </div>
-          <button type="button" class="text-sm text-green-700 font-semibold hover:underline" @click="editItems.push({ product_id: 0, quantity: 1, is_free: false })">{{ $t('edit_order.add_item') }}</button>
+          <o-button variant="ghost" class="text-green-700 font-semibold" @click="editItems.push({ product_id: 0, quantity: 1, is_free: false })">{{ $t('edit_order.add_item') }}</o-button>
         </div>
         <div class="text-right text-lg font-bold text-green-700">
           {{ $t('edit_order.total') }} R$ {{ editTotalAmount.toFixed(2) }}
         </div>
         <div class="flex justify-end gap-3 pt-2 border-t">
-          <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded" @click="emit('close')">{{ $t('edit_order.cancel') }}</button>
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow-sm">{{ $t('edit_order.save') }}</button>
+          <o-button @click="emit('close')">{{ $t('edit_order.cancel') }}</o-button>
+          <o-button variant="primary" type="submit">{{ $t('edit_order.save') }}</o-button>
         </div>
       </form>
     </div>
