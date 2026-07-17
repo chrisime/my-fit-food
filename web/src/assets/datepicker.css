@@ -1,0 +1,6 @@
+[data-oruga="dropdown"] section div[role="button"]:hover {
+    background-color: #86efac;
+}
+[data-oruga="dropdown"] section div[role="button"].bg-green-400:hover {
+    background-color: #15803d;
+}

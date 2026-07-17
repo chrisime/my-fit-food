@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import Oruga, { OrugaComponentPlugins } from '@oruga-ui/oruga-next'
 import '@mdi/font/css/materialdesignicons.min.css'
+import './assets/datepicker.css'
 
 import App from './App.vue'
 import router from './router'
@@ -115,6 +116,38 @@ const orugaConfig = {
             if (size === 'large') return 'text-2xl'
             return 'text-base'
         },
+    },
+    dropdown: {
+        override: true,
+        rootClass: 'relative',
+        menuClass: 'absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg',
+        menuActiveClass: 'block',
+        menuPositionClass: (position: string) => {
+            if (position === 'top') return 'bottom-full mb-1 left-0'
+            if (position === 'bottom') return 'top-full mt-1 left-0'
+            if (position === 'left') return 'right-full mr-1 top-0'
+            if (position === 'right') return 'left-full ml-1 top-0'
+            return ''
+        },
+        triggerClass: 'inline-flex',
+    },
+    datepicker: {
+        override: true,
+        rootClass: 'relative inline-flex',
+        boxClass: 'bg-green-50 p-4 min-w-[260px]',
+        headerClass: 'flex items-center justify-between gap-2 mb-2',
+        prevButtonClass: 'hover:bg-gray-100 rounded p-1 text-gray-600',
+        nextButtonClass: 'hover:bg-gray-100 rounded p-1 text-gray-600',
+        listsClass: 'flex items-center gap-1',
+        tableClass: 'flex flex-col',
+        tableHeadClass: 'flex',
+        tableHeadCellClass: 'flex-1 text-gray-500 text-xs font-medium text-center pb-1',
+        tableRowClass: 'flex',
+        tableCellClass: 'flex-1 text-center cursor-pointer transition-colors text-sm rounded py-1.5',
+        tableCellTodayClass: 'font-bold text-green-800',
+        tableCellSelectedClass: 'bg-green-400 font-medium',
+        tableCellWithinHoveredClass: 'bg-green-200',
+        tableCellUnselectableClass: 'text-gray-300 cursor-default',
     },
 }
 

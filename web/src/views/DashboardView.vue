@@ -35,9 +35,15 @@ const allStock = ref<StockItem[]>([])
 const nameFilter = ref('')
 const stockFilter = ref<number | null>(7)
 const orderNameFilter = ref('')
-const orderDateFrom = ref('')
-const orderDateTo = ref('')
+const orderDateRange = ref<[Date, Date] | []>([])
 const maxOrders = ref(10)
+
+function dateToStr(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 const filteredStock = computed(() => {
   return allStock.value.filter((s) => {
@@ -53,8 +59,10 @@ const filteredOrders = computed(() => {
     const nameMatch = o.customer_name.toLowerCase().includes(orderNameFilter.value.toLowerCase())
     if (!nameMatch) return false
     const d = o.created_at.slice(0, 10)
-    if (orderDateFrom.value && d < orderDateFrom.value) return false
-    if (orderDateTo.value && d > orderDateTo.value) return false
+    if (orderDateRange.value.length === 2) {
+      if (d < dateToStr(orderDateRange.value[0])) return false
+      if (d > dateToStr(orderDateRange.value[1])) return false
+    }
     return true
   })
   const count = maxOrders.value > 0 ? maxOrders.value : stats.value.recent_orders.length
@@ -144,10 +152,7 @@ onMounted(async () => {
           <p v-if="!filteredOrders.length" class="p-3 text-gray-400 text-sm">{{ $t('page.dashboard.no_orders') }}</p>
           <div class="flex flex-wrap gap-x-1 gap-y-1 p-2 border-t border-gray-100 items-center">
             <o-input v-model="orderNameFilter" class="min-w-[120px] flex-1" size="small" :placeholder="$t('page.dashboard.filter_name_placeholder')" />
-            <span class="text-xs text-gray-500 ml-1">{{ $t('page.dashboard.filter_date_from') }}</span>
-            <o-input v-model="orderDateFrom" type="date" class="w-28" size="small" />
-            <span class="text-xs text-gray-500 ml-1">{{ $t('page.dashboard.filter_date_to') }}</span>
-            <o-input v-model="orderDateTo" type="date" class="w-28" size="small" />
+            <o-datepicker v-model="orderDateRange" range size="small" icon="calendar" placeholder="Datum" trap-focus class="w-52" />
             <div class="flex items-center gap-1 ml-auto">
               <o-input v-model.number="maxOrders" type="number" class="w-16" size="small" min="0" placeholder="Anz." />
               <span class="text-xs text-gray-400 whitespace-nowrap">{{ filteredOrders.length }} / {{ stats.recent_orders.length }}</span>

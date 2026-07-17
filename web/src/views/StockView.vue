@@ -52,7 +52,7 @@ const formProductId = ref(0)
 const formType = ref<'in' | 'out'>('in')
 const formQuantity = ref(1)
 const formNotes = ref('')
-const formExpiresAt = ref('')
+const formExpiresAt = ref<Date | undefined>(undefined)
 const formProductName = ref('')
 
 function openMovement(productId: number, productName: string) {
@@ -61,18 +61,32 @@ function openMovement(productId: number, productName: string) {
   formType.value = 'in'
   formQuantity.value = 1
   formNotes.value = ''
-  formExpiresAt.value = ''
+  formExpiresAt.value = undefined
   showForm.value = true
+}
+
+function toDateStr(d: Date | undefined): string | undefined {
+  if (!d) return undefined
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function parseDate(str: string): Date {
+  const [y, m, d] = str.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
 
 const { on, off } = useWebSocket()
 
 const showEditModal = ref(false)
 const editingBatch = ref<Batch | null>(null)
-const editExpiresAt = ref('')
+const editExpiresAt = ref<Date | undefined>(undefined)
+
 function startEdit(batch: Batch) {
   editingBatch.value = batch
-  editExpiresAt.value = batch.expires_at || ''
+  editExpiresAt.value = batch.expires_at ? parseDate(batch.expires_at) : undefined
   showEditModal.value = true
 }
 
@@ -81,7 +95,7 @@ async function saveExpiresAt() {
   try {
     await patch('/stock/batch/expires-at', {
       movement_ids: editingBatch.value.lot_ids,
-      expires_at: editExpiresAt.value,
+      expires_at: toDateStr(editExpiresAt.value),
     })
     toast('success.expiry_updated', 'success')
     showEditModal.value = false
@@ -143,12 +157,12 @@ async function submitMovement() {
       quantity: formQuantity.value,
       type: formType.value,
       notes: formNotes.value || undefined,
-      expires_at: formType.value === 'in' ? formExpiresAt.value : undefined,
+      expires_at: formType.value === 'in' ? toDateStr(formExpiresAt.value) : undefined,
     })
     formProductId.value = 0
     formQuantity.value = 1
     formNotes.value = ''
-    formExpiresAt.value = ''
+    formExpiresAt.value = undefined
     showForm.value = false
     await fetchBalance()
     toast(formType.value === 'in' ? 'success.production_registered' : 'success.exit_registered', 'success')
@@ -213,14 +227,14 @@ async function submitMovement() {
         </table>
       </div>
 
-      <o-modal v-model:active="showEditModal" :width="400" @update:active="(v: boolean) => { if (!v) editingBatch = null }">
+      <o-modal v-model:active="showEditModal" :width="500" @update:active="(v: boolean) => { if (!v) editingBatch = null }">
         <div class="p-4 space-y-4">
           <p class="font-semibold">{{ $t('page.stock.edit_expiry_modal') }}</p>
           <p class="text-sm text-gray-600" v-if="editingBatch">
             {{ $t('page.stock.batch_info', { date: fmtDate(editingBatch.date), ids: editingBatch.lot_ids.join(', ') }) }}
           </p>
           <o-field :label="$t('page.stock.new_expiry_date')">
-            <o-input v-model="editExpiresAt" type="date" required />
+            <o-datepicker v-model="editExpiresAt" icon="calendar" teleport />
           </o-field>
           <div class="flex justify-end gap-2">
             <o-button @click="showEditModal = false">{{ $t('page.stock.cancel') }}</o-button>
@@ -250,7 +264,7 @@ async function submitMovement() {
                 <o-input v-model="formQuantity" type="number" min="1" required />
               </o-field>
               <o-field v-if="formType === 'in'" :label="$t('page.stock.expiry_label')" class="flex-1" variant="danger" :message="!formExpiresAt && formType === 'in' ? $t('page.stock.required') : ''">
-                <o-input v-model="formExpiresAt" type="date" required />
+                <o-datepicker v-model="formExpiresAt" icon="calendar" teleport />
               </o-field>
             </div>
             <o-field :label="formType === 'out' ? $t('page.stock.reason') : $t('page.stock.notes_label')">
