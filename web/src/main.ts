@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import Oruga, { OrugaComponentPlugins } from '@oruga-ui/oruga-next'
 import '@mdi/font/css/materialdesignicons.min.css'
-import './assets/datepicker.css'
 
 import App from './App.vue'
 import router from './router'
@@ -143,9 +142,9 @@ const orugaConfig = {
         tableHeadClass: 'flex',
         tableHeadCellClass: 'flex-1 text-gray-500 text-xs font-medium text-center pb-1',
         tableRowClass: 'flex',
-        tableCellClass: 'flex-1 text-center cursor-pointer transition-colors text-sm rounded py-1.5',
+        tableCellClass: 'flex-1 text-center cursor-pointer hover:bg-green-200 transition-colors text-sm rounded py-1.5',
         tableCellTodayClass: 'font-bold text-green-800',
-        tableCellSelectedClass: 'bg-green-400 font-medium',
+        tableCellSelectedClass: 'bg-green-400 font-medium hover:bg-green-600',
         tableCellWithinHoveredClass: 'bg-green-200',
         tableCellUnselectableClass: 'text-gray-300 cursor-default',
     },
